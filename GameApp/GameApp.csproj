@@ -1,0 +1,36 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net9.0-windows7.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\GameEngine\GameEngine.csproj" />
+    </ItemGroup>
+    <ItemGroup>
+	    <Content Include="..\GameEngine\Content\**\*.*">
+		    <Link>Content\%(RecursiveDir)%(Filename)%(Extension)</Link>
+		    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	    </Content>
+    </ItemGroup>
+    <ItemGroup>
+      <Content Remove="..\GameEngine\Content\font.spritefont" />
+    </ItemGroup>
+    <ItemGroup>
+      <Content Update="..\GameEngine\Content\Fonts\font.fnt">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Content>
+      <Content Update="..\GameEngine\Content\Fonts\font.png">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Content>
+      <Content Update="..\GameEngine\Content\Fonts\NotoSansJP-Regular.ttf">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Content>
+    </ItemGroup>
+	<Target Name="RunBuildTool" BeforeTargets="Build">
+		<Message Text="Running BuildTool to generate JSON scripts..." Importance="high" />
+		<Exec Command="dotnet run --project ../BuildTool/BuildTool.csproj -- ../GameEngine/Content/Events"
+			  ContinueOnError="false" />
+	</Target>
+</Project>

@@ -1,0 +1,261 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "E:\\NovelEngine\\GameEngine\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{9BBA9FF3-13A0-42CE-850E-03FCB4D15DEC}|GameEngine.csproj|e:\\novelengine\\gameengine\\game1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9BBA9FF3-13A0-42CE-850E-03FCB4D15DEC}|GameEngine.csproj|solutionrelative:game1.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9BBA9FF3-13A0-42CE-850E-03FCB4D15DEC}|GameEngine.csproj|e:\\novelengine\\gameengine\\system\\core\\gameworld.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9BBA9FF3-13A0-42CE-850E-03FCB4D15DEC}|GameEngine.csproj|solutionrelative:system\\core\\gameworld.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9BBA9FF3-13A0-42CE-850E-03FCB4D15DEC}|GameEngine.csproj|e:\\novelengine\\gameengine\\events\\eventrunner.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9BBA9FF3-13A0-42CE-850E-03FCB4D15DEC}|GameEngine.csproj|solutionrelative:events\\eventrunner.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9BBA9FF3-13A0-42CE-850E-03FCB4D15DEC}|GameEngine.csproj|e:\\novelengine\\gameengine\\system\\core\\variablestore.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9BBA9FF3-13A0-42CE-850E-03FCB4D15DEC}|GameEngine.csproj|solutionrelative:system\\core\\variablestore.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9BBA9FF3-13A0-42CE-850E-03FCB4D15DEC}|GameEngine.csproj|e:\\novelengine\\gameengine\\events\\eventmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9BBA9FF3-13A0-42CE-850E-03FCB4D15DEC}|GameEngine.csproj|solutionrelative:events\\eventmanager.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9BBA9FF3-13A0-42CE-850E-03FCB4D15DEC}|GameEngine.csproj|e:\\novelengine\\gameengine\\system\\state\\gamestate.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9BBA9FF3-13A0-42CE-850E-03FCB4D15DEC}|GameEngine.csproj|solutionrelative:system\\state\\gamestate.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D46C553C-B748-4A6D-B156-4E409807414D}|..\\BuildTool\\BuildTool.csproj|e:\\novelengine\\buildtool\\buildtool.csproj||{04B8AB82-A572-4FEF-95CE-5222444B6B64}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9BBA9FF3-13A0-42CE-850E-03FCB4D15DEC}|GameEngine.csproj|e:\\novelengine\\gameengine\\events\\nodeexecutor.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9BBA9FF3-13A0-42CE-850E-03FCB4D15DEC}|GameEngine.csproj|solutionrelative:events\\nodeexecutor.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E6638A5B-08AF-4C87-9A29-BB7B767BA130}|..\\ScriptParser\\ScriptParser.csproj|e:\\novelengine\\scriptparser\\scriptparser.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E6638A5B-08AF-4C87-9A29-BB7B767BA130}|..\\ScriptParser\\ScriptParser.csproj|e:\\novelengine\\scriptparser\\parser\\scriptparser.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{AFD22F59-2062-4B52-BFB3-385F07C39747}|..\\GameApp\\GameApp.csproj|e:\\novelengine\\gameapp\\gameapp.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9BBA9FF3-13A0-42CE-850E-03FCB4D15DEC}|GameEngine.csproj|e:\\novelengine\\gameengine\\events\\runtimenode\\runtimescene.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9BBA9FF3-13A0-42CE-850E-03FCB4D15DEC}|GameEngine.csproj|solutionrelative:events\\runtimenode\\runtimescene.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9BBA9FF3-13A0-42CE-850E-03FCB4D15DEC}|GameEngine.csproj|e:\\novelengine\\gameengine\\events\\eventdata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9BBA9FF3-13A0-42CE-850E-03FCB4D15DEC}|GameEngine.csproj|solutionrelative:events\\eventdata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9BBA9FF3-13A0-42CE-850E-03FCB4D15DEC}|GameEngine.csproj|e:\\novelengine\\gameengine\\system\\evaluator\\objectevaluator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9BBA9FF3-13A0-42CE-850E-03FCB4D15DEC}|GameEngine.csproj|solutionrelative:system\\evaluator\\objectevaluator.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{E6638A5B-08AF-4C87-9A29-BB7B767BA130}|..\\ScriptParser\\ScriptParser.csproj|e:\\novelengine\\scriptparser\\parser\\eventdefinition.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 9,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 6,
+              "Title": "BuildTool",
+              "DocumentMoniker": "E:\\NovelEngine\\BuildTool\\BuildTool.csproj",
+              "RelativeDocumentMoniker": "..\\BuildTool\\BuildTool.csproj",
+              "ToolTip": "E:\\NovelEngine\\BuildTool\\BuildTool.csproj",
+              "RelativeToolTip": "..\\BuildTool\\BuildTool.csproj",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2026-03-04T14:57:08.492Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 8,
+              "Title": "ScriptParser.csproj",
+              "DocumentMoniker": "E:\\NovelEngine\\ScriptParser\\ScriptParser.csproj",
+              "RelativeDocumentMoniker": "..\\ScriptParser\\ScriptParser.csproj",
+              "ToolTip": "E:\\NovelEngine\\ScriptParser\\ScriptParser.csproj",
+              "RelativeToolTip": "..\\ScriptParser\\ScriptParser.csproj",
+              "ViewState": "AgIAAAAAAAAAAAAAAADwvwAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2026-03-01T14:19:57.162Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "EventManager.cs",
+              "DocumentMoniker": "E:\\NovelEngine\\GameEngine\\Events\\EventManager.cs",
+              "RelativeDocumentMoniker": "Events\\EventManager.cs",
+              "ToolTip": "E:\\NovelEngine\\GameEngine\\Events\\EventManager.cs",
+              "RelativeToolTip": "Events\\EventManager.cs",
+              "ViewState": "AgIAAAYAAAAAAAAAAAAAACAAAAAMAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-27T20:31:16.571Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "GameState.cs",
+              "DocumentMoniker": "E:\\NovelEngine\\GameEngine\\System\\State\\GameState.cs",
+              "RelativeDocumentMoniker": "System\\State\\GameState.cs",
+              "ToolTip": "E:\\NovelEngine\\GameEngine\\System\\State\\GameState.cs",
+              "RelativeToolTip": "System\\State\\GameState.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAAIAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-27T19:44:46.09Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 11,
+              "Title": "RuntimeScene.cs",
+              "DocumentMoniker": "E:\\NovelEngine\\GameEngine\\Events\\RuntimeNode\\RuntimeScene.cs",
+              "RelativeDocumentMoniker": "Events\\RuntimeNode\\RuntimeScene.cs",
+              "ToolTip": "E:\\NovelEngine\\GameEngine\\Events\\RuntimeNode\\RuntimeScene.cs",
+              "RelativeToolTip": "Events\\RuntimeNode\\RuntimeScene.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAADwvwAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-27T19:40:31.698Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 12,
+              "Title": "EventData.cs",
+              "DocumentMoniker": "E:\\NovelEngine\\GameEngine\\Events\\EventData.cs",
+              "RelativeDocumentMoniker": "Events\\EventData.cs",
+              "ToolTip": "E:\\NovelEngine\\GameEngine\\Events\\EventData.cs",
+              "RelativeToolTip": "Events\\EventData.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAADwvwAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-27T19:39:20.108Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 13,
+              "Title": "ObjectEvaluator.cs",
+              "DocumentMoniker": "E:\\NovelEngine\\GameEngine\\System\\Evaluator\\ObjectEvaluator.cs",
+              "RelativeDocumentMoniker": "System\\Evaluator\\ObjectEvaluator.cs",
+              "ToolTip": "E:\\NovelEngine\\GameEngine\\System\\Evaluator\\ObjectEvaluator.cs",
+              "RelativeToolTip": "System\\Evaluator\\ObjectEvaluator.cs",
+              "ViewState": "AgIAAEUAAAAAAAAAAAAYwFMAAAARAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-27T17:33:17.39Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "GameWorld.cs",
+              "DocumentMoniker": "E:\\NovelEngine\\GameEngine\\System\\Core\\GameWorld.cs",
+              "RelativeDocumentMoniker": "System\\Core\\GameWorld.cs",
+              "ToolTip": "E:\\NovelEngine\\GameEngine\\System\\Core\\GameWorld.cs",
+              "RelativeToolTip": "System\\Core\\GameWorld.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAsAAAARAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-27T17:30:44.516Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "VariableStore.cs",
+              "DocumentMoniker": "E:\\NovelEngine\\GameEngine\\System\\Core\\VariableStore.cs",
+              "RelativeDocumentMoniker": "System\\Core\\VariableStore.cs",
+              "ToolTip": "E:\\NovelEngine\\GameEngine\\System\\Core\\VariableStore.cs",
+              "RelativeToolTip": "System\\Core\\VariableStore.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAAAQAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-27T16:46:34.379Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Game1.cs",
+              "DocumentMoniker": "E:\\NovelEngine\\GameEngine\\Game1.cs",
+              "RelativeDocumentMoniker": "Game1.cs",
+              "ToolTip": "E:\\NovelEngine\\GameEngine\\Game1.cs",
+              "RelativeToolTip": "Game1.cs",
+              "ViewState": "AgIAAD4AAAAAAAAAAAApwKIAAAAfAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-27T16:23:53.418Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "EventRunner.cs",
+              "DocumentMoniker": "E:\\NovelEngine\\GameEngine\\Events\\EventRunner.cs",
+              "RelativeDocumentMoniker": "Events\\EventRunner.cs",
+              "ToolTip": "E:\\NovelEngine\\GameEngine\\Events\\EventRunner.cs",
+              "RelativeToolTip": "Events\\EventRunner.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAqwAcAAAARAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-27T16:23:27.106Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 7,
+              "Title": "NodeExecutor.cs",
+              "DocumentMoniker": "E:\\NovelEngine\\GameEngine\\Events\\NodeExecutor.cs",
+              "RelativeDocumentMoniker": "Events\\NodeExecutor.cs",
+              "ToolTip": "E:\\NovelEngine\\GameEngine\\Events\\NodeExecutor.cs",
+              "RelativeToolTip": "Events\\NodeExecutor.cs",
+              "ViewState": "AgIAACUAAAAAAAAAAAAjwCAAAAA1AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-27T16:20:40.706Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 10,
+              "Title": "GameApp.csproj",
+              "DocumentMoniker": "E:\\NovelEngine\\GameApp\\GameApp.csproj",
+              "RelativeDocumentMoniker": "..\\GameApp\\GameApp.csproj",
+              "ToolTip": "E:\\NovelEngine\\GameApp\\GameApp.csproj",
+              "RelativeToolTip": "..\\GameApp\\GameApp.csproj",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABEAAABAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2026-02-27T15:28:13.511Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 14,
+              "Title": "EventDefinition.cs",
+              "DocumentMoniker": "E:\\NovelEngine\\ScriptParser\\Parser\\EventDefinition.cs",
+              "RelativeDocumentMoniker": "..\\ScriptParser\\Parser\\EventDefinition.cs",
+              "ToolTip": "E:\\NovelEngine\\ScriptParser\\Parser\\EventDefinition.cs",
+              "RelativeToolTip": "..\\ScriptParser\\Parser\\EventDefinition.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAABIAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-24T11:29:18.915Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
+              "Title": "ScriptParser.cs",
+              "DocumentMoniker": "E:\\NovelEngine\\ScriptParser\\Parser\\ScriptParser.cs",
+              "RelativeDocumentMoniker": "..\\ScriptParser\\Parser\\ScriptParser.cs",
+              "ToolTip": "E:\\NovelEngine\\ScriptParser\\Parser\\ScriptParser.cs",
+              "RelativeToolTip": "..\\ScriptParser\\Parser\\ScriptParser.cs",
+              "ViewState": "AgIAAEsBAAAAAAAAAAAewGEBAAAjAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-02-24T11:15:07.49Z"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
