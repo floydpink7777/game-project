@@ -46,20 +46,20 @@ namespace GameEngine.Events
 
         private string Expand(string text)
         {
-            string expanded = _vars.Expand(text);
-
-            return Regex.Replace(expanded, @"@([a-zA-Z0-9_\.]+)", m =>
+            return Regex.Replace(text, @"@([a-zA-Z0-9_\.]+)", m =>
             {
                 string key = m.Groups[1].Value;
 
-                if (_vars.IsOfficial(key) || _vars.HasValue(key))
+                try
                 {
-                    var v = _vars.GetValue<object>(key);
-                    return v?.ToString() ?? "";
+                    var value = _evaluator.EvaluatePath(key);
+                    return value?.ToString() ?? "";
                 }
-
-                // VariableStore に無い → 未定義変数として扱う
-                return $"@{key}";
+                catch
+                {
+                    // 未定義 → そのまま残す
+                    return $"@{key}";
+                }
             });
         }
 
@@ -128,6 +128,50 @@ namespace GameEngine.Events
         {
             if (args.Count < count)
                 throw new Exception($"{command} requires {count} arguments, but got {args.Count}");
+        }
+
+        public void ExecuteNode(NodeBase node, GameSession session, EventRunner runner)
+        {
+            switch (node)
+            {
+                case DialogueNode d:
+                    ExecuteDialogue(d, session);
+                    break;
+
+                case ChoiceNode c:
+                    ExecuteChoice(c, session);
+                    break;
+
+                case CommandNode cmd:
+                    ExecuteCommand(cmd);
+                    runner.ExecuteCommand(cmd); // ★ /end, /jump など
+                    break;
+
+                case IfNode i:
+                    ExecuteIf(i, session, runner);
+                    break;
+
+                default:
+                    throw new Exception($"Unknown node type: {node.GetType().Name}");
+            }
+        }
+
+        public void ExecuteIf(IfNode node, GameSession session, EventRunner runner)
+        {
+            bool result = ConditionEvaluator.Evaluate(
+                node.Condition,
+                _vars,
+                _evaluator
+            );
+
+            var list = result ? node.ThenBody : node.ElseBody;
+
+            if (list == null || list.Count == 0)
+                return;
+
+            // ★ If の中身は「次のフレームで実行される」べきなので
+            //    EventRunner に積むだけでよい
+            runner.PushNodes(list);
         }
     }
 }

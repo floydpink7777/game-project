@@ -72,6 +72,7 @@ namespace GameEngine
 
             var settings = new JsonSerializerSettings();
             settings.Converters.Add(new NodeBaseConverter());
+            settings.Converters.Add(new SingleConditionConverter());
 
             var eventData = JsonConvert.DeserializeObject<EventData>(jsonText, settings);
 
@@ -121,21 +122,18 @@ namespace GameEngine
                     if (node == null)
                         return;
 
+                    // NodeExecutor に一元化
+                    _executor.ExecuteNode(node, _gameSession, runner);
+
+                    // UI 状態遷移だけ Game1 が担当
                     switch (node)
                     {
-                        case DialogueNode d:
-                            _executor.ExecuteDialogue(d, _gameSession);
+                        case DialogueNode:
                             _gameState = GameState.WaitingForNext;
                             break;
 
-                        case ChoiceNode c:
-                            _executor.ExecuteChoice(c, _gameSession);
+                        case ChoiceNode:
                             _gameState = GameState.WaitingForChoice;
-                            break;
-
-                        case CommandNode cmd:
-                            _executor.ExecuteCommand(cmd);
-                            runner.ExecuteCommand(cmd);
                             break;
                     }
                     break;

@@ -2,6 +2,7 @@
 using GameEngine.System.Core;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace GameEngine.Events
 {
@@ -13,6 +14,9 @@ namespace GameEngine.Events
         private int _sceneIndex = 0;
         private int _nodeIndex = 0;
 
+        // ★ IfNode や Choice の後に挿入されるノードを保持するスタック
+        private readonly Stack<NodeBase> _pending = new();
+
         public bool IsFinished =>
             _sceneIndex >= _event.Scenes.Count;
 
@@ -21,7 +25,6 @@ namespace GameEngine.Events
             _event = data;
             _vars = vars;
 
-            // Start シーンを探す
             _sceneIndex = _event.Scenes.FindIndex(s => s.Label == "Start");
             if (_sceneIndex < 0)
                 throw new Exception("Start シーンが存在しません");
@@ -29,9 +32,21 @@ namespace GameEngine.Events
             _nodeIndex = 0;
         }
 
+        // ★ IfNode などからノードを積む
+        public void PushNodes(IEnumerable<NodeBase> nodes)
+        {
+            // 逆順で積むことで、最初のノードが先に実行される
+            foreach (var n in nodes.Reverse())
+                _pending.Push(n);
+        }
+
         // ★ 1ステップ進めて NodeBase を返す
         public NodeBase NextNode()
         {
+            // まず pending を優先
+            if (_pending.Count > 0)
+                return _pending.Pop();
+
             if (IsFinished)
                 return null;
 
@@ -39,7 +54,6 @@ namespace GameEngine.Events
 
             if (_nodeIndex >= scene.Nodes.Count)
             {
-                // シーン終了 → 次のシーンへ
                 _sceneIndex++;
                 _nodeIndex = 0;
                 return NextNode();
@@ -48,7 +62,6 @@ namespace GameEngine.Events
             return scene.Nodes[_nodeIndex++];
         }
 
-        // ★ 選択肢でジャンプ
         public void Jump(string label)
         {
             int index = _event.Scenes.FindIndex(s => s.Label == label);
@@ -57,25 +70,22 @@ namespace GameEngine.Events
 
             _sceneIndex = index;
             _nodeIndex = 0;
+
+            // ★ ジャンプ時は pending をクリアする
+            _pending.Clear();
         }
 
-        // ★ コマンド実行
         public void ExecuteCommand(CommandNode cmd)
         {
             switch (cmd.Name)
             {
                 case "/end":
-                    _sceneIndex = _event.Scenes.Count; // 終了扱い
+                    _sceneIndex = _event.Scenes.Count;
                     break;
 
                 case "/jump":
                     Jump(cmd.Args[0].ToString());
                     break;
-
-                    // 必要なら追加
-                    // case "/wait":
-                    // case "/set":
-                    // case "/voice":
             }
         }
     }

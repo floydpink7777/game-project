@@ -12,6 +12,7 @@ namespace GameEngine.Events.RuntimeNode
             ["dialogue"] = () => new DialogueNode(),
             ["choice"] = () => new ChoiceNode(),
             ["command"] = () => new CommandNode(),
+            ["ifNode"] = () => new IfNode()
         };
 
         public override bool CanConvert(Type objectType)

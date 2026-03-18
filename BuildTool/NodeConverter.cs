@@ -13,6 +13,7 @@ namespace BuildTool.Converters
                 ScriptParser.Parser.DialogueNode d => ToRuntimeDialogue(d),
                 ScriptParser.Parser.ChoiceNode c => ToRuntimeChoice(c),
                 ScriptParser.Parser.CommandNode cmd => ToRuntimeCommand(cmd),
+                ScriptParser.Parser.IfNode ifn => ToRuntimeIf(ifn),
                 _ => throw new System.Exception($"Unknown AST node type: {ast.GetType().Name}")
             };
         }
@@ -57,6 +58,17 @@ namespace BuildTool.Converters
                 Type = ast.type,
                 Name = ast.name,
                 Args = new List<object>(ast.args)
+            };
+        }
+
+        private static GameEngine.Events.RuntimeNode.IfNode ToRuntimeIf(ScriptParser.Parser.IfNode ast)
+        {
+            return new GameEngine.Events.RuntimeNode.IfNode
+            {
+                Type = ast.type,
+                Condition = ConditionConverter.Convert(ast.condition), // ← そのまま渡す
+                ThenBody = ast.thenBody.Select(ToRuntime).ToList(),
+                ElseBody = ast.elseBody?.Select(ToRuntime).ToList()
             };
         }
     }

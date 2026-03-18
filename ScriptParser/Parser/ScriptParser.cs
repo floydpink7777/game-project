@@ -1,29 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 
 namespace ScriptParser.Parser
 {
     public class ScriptParser
     {
-        private enum ParseState
-        {
-            Meta,
-            Scene,
-            ChoiceBlock,
-            TextBlock
-        }
-
-        private ParseState state = ParseState.Meta;
-
         public EventDefinition EventInfo { get; private set; } = new EventDefinition();
         public Dictionary<string, SceneNode> Scenes { get; private set; } = new Dictionary<string, SceneNode>();
 
         private SceneNode? currentScene;
-        private ChoiceNode? currentChoice;
-
-        private List<string> buffer = new();
 
         // コマンドの引数チェック用
         private static readonly Dictionary<string, ArgType[]> CommandArgTypes = new()
@@ -43,40 +31,47 @@ namespace ScriptParser.Parser
             Variable   // 変数参照（string だが識別子扱い）
         }
 
+        private int index = 0;
+        private string[] sourceLines;
+
+        private string CurrentLine => sourceLines[index];
+
         public void Parse(string[] lines)
         {
-            for (int lineNumber = 0; lineNumber < lines.Length; lineNumber++)
+            sourceLines = lines;
+            index = 0;
+
+            while (index < sourceLines.Length)
             {
-                var raw = lines[lineNumber];
+                var raw = sourceLines[index];
                 var line = StripComment(raw).Trim();
+
                 if (string.IsNullOrEmpty(line))
+                {
+                    index++;
                     continue;
-                try
-                {
-                    switch (state)
-                    {
-                        case ParseState.Meta:
-                            ParseMetaOrSceneStart(line);
-                            break;
-
-                        case ParseState.Scene:
-                            ParseSceneLine(line, lineNumber);
-                            break;
-
-                        case ParseState.ChoiceBlock:
-                            ParseChoiceLine(line);
-                            break;
-                        case ParseState.TextBlock:
-                            ParseTextBlockLine(line);
-                            break;
-                    }
                 }
-                catch(Exception ex)
+
+                // メタ情報 or シーン開始
+                if (line.StartsWith("#"))
                 {
-                    throw new Exception($"[行 {lineNumber + 1}] {ex.Message}");
+                    ParseMetaOrSceneStart(line);
+                    index++;
+                    continue;
                 }
+
+                // シーン本文
+                if (currentScene != null)
+                {
+                    var node = ParseSceneStatement();
+                    currentScene.Nodes.Add(node);
+                    continue; // ← index++ をスキップ
+                }
+
+                throw new Exception($"シーン開始前に本文が出現しました: {line}");
             }
 
+            // /jump チェック
             foreach (var scene in Scenes.Values)
             {
                 foreach (var node in scene.Nodes.OfType<CommandNode>())
@@ -84,15 +79,11 @@ namespace ScriptParser.Parser
                     if (node.name == "/jump")
                     {
                         var target = node.args[0].ToString();
-
                         if (!Scenes.ContainsKey(target))
                             throw new Exception($"未定義ラベル '{target}' へのジャンプがあります");
                     }
                 }
             }
-
-            if (state == ParseState.ChoiceBlock)
-                throw new Exception("選択肢ブロックが閉じられていません");
         }
 
         // -----------------------------
@@ -129,8 +120,7 @@ namespace ScriptParser.Parser
                 }
                 return;
             }
-
-            if (line.StartsWith("#"))
+            else if (line.StartsWith("#"))
             {
                 var label = line[1..].Trim();
 
@@ -139,104 +129,8 @@ namespace ScriptParser.Parser
 
                 currentScene = new SceneNode(label);
                 Scenes[label] = currentScene;
-                state = ParseState.Scene;
                 return;
             }
-        }
-
-        // -----------------------------
-        // Parser: シーン行
-        // -----------------------------
-        private void ParseSceneLine(string line, int lineNumber)
-        {
-            // /choice
-            if (line.StartsWith("/choice"))
-            {
-                currentChoice = new ChoiceNode();
-                currentScene.Nodes.Add(currentChoice);
-                state = ParseState.ChoiceBlock;
-                return;
-            }
-
-            // ★ ラベル（シーン開始）
-            if (line.StartsWith("#"))
-            {
-                // メタ情報の誤記を防ぐ
-                if (line.Contains("="))
-                    throw new Exception($"Scene フェーズでメタ情報は使用できません: {line}");
-
-                // まず前のシーンを閉じる（/end 自動補完）
-                if (currentScene != null &&
-                    (currentScene.Nodes.Count == 0 ||
-                     currentScene.Nodes.Last() is not CommandNode cmd || cmd.name != "/end"))
-                {
-                    currentScene.Nodes.Add(new CommandNode("/end", new List<object>()));
-                }
-
-                // 新しいシーン開始
-                var label = line[1..].Trim();
-
-                if (Scenes.ContainsKey(label))
-                    throw new Exception($"Scene '{label}' はすでに定義されています");
-
-                currentScene = new SceneNode(label);
-                Scenes[label] = currentScene;
-                return;
-            }
-
-            // /textblock
-            if (line.StartsWith("/textblock"))
-            {
-                buffer.Clear();
-                state = ParseState.TextBlock;
-                return;
-            }
-
-            // Dialogue
-            if (line.Contains(":") &&
-                !line.StartsWith("/") &&
-                !line.StartsWith("#") &&
-                !line.StartsWith(">"))
-            {
-                int idx = line.IndexOf(":");
-                var speaker = line[..idx].Trim();
-                var text = line[(idx + 1)..].Trim();
-                currentScene.Nodes.Add(new DialogueNode(speaker, text));
-                return;
-            }
-
-            // ★ NEW: コロン無しの行は「テキストのみの DialogueNode」
-            if (!line.StartsWith("/") && !line.StartsWith("#") && !line.StartsWith(">"))
-            {
-                currentScene.Nodes.Add(new DialogueNode("", line));
-                return;
-            }
-
-            // コマンド
-            if (line.StartsWith("/"))
-            {
-                var tokens = Tokenize(line);
-                var name = tokens[0];
-                var rawArgs = tokens.Skip(1).ToList();
-                var parsedArgs = rawArgs.Select(ParseValue).ToList();
-
-                if (!CommandArgTypes.TryGetValue(name, out var expectedTypes))
-                    throw new Exception($"未知のコマンドです: {name}");
-
-                if (parsedArgs.Count != expectedTypes.Length)
-                    throw new Exception($"{name} の引数数が正しくありません: 必要 {expectedTypes.Length}, 実際 {parsedArgs.Count}");
-
-                for (int i = 0; i < expectedTypes.Length; i++)
-                {
-                    if (!CheckArgType(parsedArgs[i], expectedTypes[i]))
-                        throw new Exception($"{name} の第 {i + 1} 引数の型が不正です: 期待 {expectedTypes[i]}, 実際 {parsedArgs[i]}");
-                }
-
-                currentScene.Nodes.Add(new CommandNode(name, parsedArgs));
-                return;
-            }
-
-            throw new Exception($"不正な構文です: {line}");
         }
 
         private object ParseValue(string token)
@@ -255,27 +149,6 @@ namespace ScriptParser.Parser
 
             // それ以外は変数参照（string のまま）
             return token;
-        }
-
-        // -----------------------------
-        // Parser: Choice ブロック
-        // -----------------------------
-        private void ParseChoiceLine(string line)
-        {
-            if (line == "}")
-            {
-                state = ParseState.Scene;
-                return;
-            }
-
-            if (line.StartsWith(">"))
-            {
-                var parts = line[1..].Split("->");
-                var text = parts[0].Trim();
-                var jump = parts[1].Trim().TrimStart('$');
-
-                currentChoice.options.Add(new ChoiceOption(text, jump));
-            }
         }
 
         // -----------------------------
@@ -351,24 +224,241 @@ namespace ScriptParser.Parser
             };
         }
 
-        private void ParseTextBlockLine(string line)
+        private IScriptNode ParseSceneStatement()
         {
-            // ブロック終了
-            if (line == "}")
+            var line = CurrentLine.Trim();
+
+            if (line.StartsWith("/if{"))
+                return ParseIfBlock();
+
+            if (line.StartsWith("/choice{"))
+                return ParseChoiceBlock();
+
+            if (line.StartsWith("/textblock"))
+                return ParseTextBlock();
+
+            if (IsDialogue(line))
             {
-                var text = string.Join("\n", buffer);
-                currentScene.Nodes.Add(new DialogueNode("", text));
-                buffer.Clear();
-                state = ParseState.Scene;
-                return;
+                index++;
+                return ParseDialogue(line);
             }
 
-            // 空行は無視
-            if (string.IsNullOrWhiteSpace(line))
-                return;
+            if (IsPlainDialogue(line))
+            {
+                index++;
+                return ParsePlainDialogue(line);
+            }
 
-            // すべてナレーション扱い
-            buffer.Add(line);
+            if (IsCommand(line))
+            {
+                index++;
+                return ParseCommand(line);
+            }
+
+            throw new Exception($"不正な構文です: {line}");
+        }
+
+        private bool IsDialogue(string line)
+        {
+            return line.Contains(":")
+                && !line.StartsWith("/")
+                && !line.StartsWith("#")
+                && !line.StartsWith(">");
+        }
+
+        private IScriptNode ParseDialogue(string line)
+        {
+            int idx = line.IndexOf(":");
+            var speaker = line[..idx].Trim();
+            var text = line[(idx + 1)..].Trim();
+            return new DialogueNode(speaker, text);
+        }
+
+        private bool IsPlainDialogue(string line)
+        {
+            return !line.StartsWith("/")
+                && !line.StartsWith("#")
+                && !line.StartsWith(">");
+        }
+
+        private IScriptNode ParsePlainDialogue(string line)
+        {
+            return new DialogueNode("", line);
+        }
+
+        private bool IsElseOrEndif(string line)
+        {
+            var t = line.Trim();
+            return t == "/else" || t == "/endif";
+        }
+
+        private IfNode ParseIfBlock()
+        {
+            // /if{ の確認
+            if (!CurrentLine.Trim().StartsWith("/if{"))
+                throw new Exception("/if{ が必要です");
+
+            index++; // /if{ の次の行へ
+
+            // -------------------------
+            // 1. 条件式ブロックの収集
+            // -------------------------
+            var condLines = new List<string>();
+
+            while (!CurrentLine.Trim().Equals("}"))
+            {
+                var l = CurrentLine.Trim();
+
+                if (string.IsNullOrEmpty(l))
+                    throw new Exception("条件式ブロック内の空行は禁止です");
+
+                condLines.Add(l);
+                index++;
+            }
+
+            index++; // } を読み飛ばす
+
+            // -------------------------
+            // 2. 条件式の解析（後で実装）
+            // -------------------------
+            var condition = ConditionParser.Parse(condLines);
+
+            // -------------------------
+            // 3. THEN 本文
+            // -------------------------
+            var thenBody = new List<IScriptNode>();
+
+            while (!IsElseOrEndif(CurrentLine))
+            {
+                thenBody.Add(ParseSceneStatement());
+            }
+
+            // -------------------------
+            // 4. ELSE
+            // -------------------------
+            List<IScriptNode>? elseBody = null;
+
+            if (CurrentLine.Trim() == "/else")
+            {
+                index++; // /else の次へ
+                elseBody = new List<IScriptNode>();
+
+                while (!CurrentLine.Trim().Equals("/endif"))
+                {
+                    elseBody.Add(ParseSceneStatement());
+                }
+            }
+
+            // -------------------------
+            // 5. /endif
+            // -------------------------
+            if (CurrentLine.Trim() != "/endif")
+                throw new Exception("/endif が必要です");
+
+            index++; // /endif の次へ
+
+            return new IfNode(condition, thenBody, elseBody);
+        }
+
+        private IScriptNode ParseChoiceBlock()
+        {
+            // /choice{ の行を取得
+            var line = CurrentLine.Trim();
+
+            // /choice{ の { を確認
+            if (!line.EndsWith("{"))
+                throw new Exception("/choice{ の形式が不正です");
+
+            index++; // 次の行へ
+
+            var choice = new ChoiceNode();
+
+            while (true)
+            {
+                var l = CurrentLine.Trim();
+
+                // ブロック終了
+                if (l == "}")
+                {
+                    index++;
+                    break;
+                }
+
+                // 選択肢行
+                if (l.StartsWith(">"))
+                {
+                    var parts = l[1..].Split("->");
+                    if (parts.Length != 2)
+                        throw new Exception("選択肢の書式が不正です: " + l);
+
+                    var text = parts[0].Trim();
+                    var jump = parts[1].Trim().TrimStart('$');
+
+                    choice.options.Add(new ChoiceOption(text, jump));
+                    index++;
+                    continue;
+                }
+
+                throw new Exception($"選択肢ブロック内で不正な行です: {l}");
+            }
+
+            return choice;
+        }
+
+        private IScriptNode ParseTextBlock()
+        {
+            index++; // /textblock の次の行へ
+
+            var buffer = new List<string>();
+
+            while (true)
+            {
+                var line = CurrentLine.Trim();
+
+                // ブロック終了
+                if (line == "}")
+                {
+                    index++; // } の次へ
+                    break;
+                }
+
+                // 空行は無視
+                if (!string.IsNullOrWhiteSpace(line))
+                    buffer.Add(line);
+
+                index++;
+            }
+
+            // 1つの DialogueNode として返す
+            var text = string.Join("\n", buffer);
+            return new DialogueNode("", text);
+        }
+
+        private bool IsCommand(string line)
+        {
+            return line.StartsWith("/");
+        }
+
+        private IScriptNode ParseCommand(string line)
+        {
+            var tokens = Tokenize(line);
+            var name = tokens[0];
+            var rawArgs = tokens.Skip(1).ToList();
+            var parsedArgs = rawArgs.Select(ParseValue).ToList();
+
+            if (!CommandArgTypes.TryGetValue(name, out var expectedTypes))
+                throw new Exception($"未知のコマンドです: {name}");
+
+            if (parsedArgs.Count != expectedTypes.Length)
+                throw new Exception($"{name} の引数数が正しくありません: 必要 {expectedTypes.Length}, 実際 {parsedArgs.Count}");
+
+            for (int i = 0; i < expectedTypes.Length; i++)
+            {
+                if (!CheckArgType(parsedArgs[i], expectedTypes[i]))
+                    throw new Exception($"{name} の第 {i + 1} 引数の型が不正です: 期待 {expectedTypes[i]}, 実際 {parsedArgs[i]}");
+            }
+
+            return new CommandNode(name, parsedArgs);
         }
     }
 }

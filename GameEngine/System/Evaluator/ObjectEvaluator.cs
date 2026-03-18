@@ -105,5 +105,15 @@ namespace GameEngine.System.Evaluator
 
             throw new Exception($"'{key}' not found on {obj.GetType().Name}");
         }
+
+        private static object ResolveValue(
+            string name,
+            VariableStore vars,
+            ObjectEvaluator objEval
+        )
+        {
+        // ObjectEvaluator が VariableStore → GameWorld の順で解決してくれる
+        return objEval.EvaluatePath(name);
+        }
     }
 }

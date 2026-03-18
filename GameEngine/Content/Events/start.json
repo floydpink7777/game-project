@@ -1,116 +1,392 @@
 {
   "Event": {
     "EventID": "start",
-    "EventName": "TextBlockTest",
-    "EventType": "debug",
-    "Members": []
+    "EventName": "IfTest_Characters",
+    "EventType": "normal",
+    "Members": [
+      "player",
+      "alice",
+      "bob"
+    ]
   },
   "Scenes": [
     {
       "Label": "Start",
       "Nodes": [
         {
-          "Speaker": "",
-          "Text": "私は",
-          "Type": "dialogue"
-        },
-        {
-          "Speaker": "",
-          "Text": "ねむい",
-          "Type": "dialogue"
-        },
-        {
-          "Speaker": "",
-          "Text": "でも歩かなければならない",
-          "Type": "dialogue"
-        },
-        {
-          "Speaker": "",
-          "Text": "私は\nねむい\nでも歩かなければならない",
-          "Type": "dialogue"
-        },
-        {
-          "Speaker": "@player.name",
-          "Text": "よろしく",
-          "Type": "dialogue"
-        },
-        {
-          "Options": [
-            {
-              "Text": "次へ進む",
-              "Jump": "Next"
-            },
-            {
-              "Text": "テキストブロックをもう一度見る",
-              "Jump": "Start"
-            }
-          ],
-          "Type": "choice"
-        },
-        {
-          "Name": "/end",
-          "Args": [],
-          "Type": "command"
-        }
-      ]
-    },
-    {
-      "Label": "Next",
-      "Nodes": [
-        {
-          "Speaker": "",
-          "Text": "次のシーンに入りました@player.name\nここは textblock のテストです",
-          "Type": "dialogue"
-        },
-        {
           "Name": "/set",
           "Args": [
-            "counter",
-            1
-          ],
-          "Type": "command"
-        },
-        {
-          "Name": "/add",
-          "Args": [
-            "counter",
-            2
-          ],
-          "Type": "command"
-        },
-        {
-          "Name": "/set",
-          "Args": [
-            "isClear",
+            "flag",
             false
           ],
           "Type": "command"
         },
         {
-          "Name": "/flag",
+          "Speaker": "@player.name",
+          "Text": "条件分岐テストを開始します。",
+          "Type": "dialogue"
+        },
+        {
+          "Speaker": "@player.name",
+          "Text": "現在のHP → プレイヤー:@player.hp / アリス:@npc.alice.hp / ボブ:@npc.bob.hp",
+          "Type": "dialogue"
+        },
+        {
+          "Condition": {
+            "OrGroups": [
+              {
+                "AndGroups": [
+                  {
+                    "Terms": [
+                      {
+                        "Left": "player.hp",
+                        "Operator": ">=",
+                        "RightValue": 1000
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          "ThenBody": [
+            {
+              "Speaker": "@player.name",
+              "Text": "プレイヤーはとても元気です！",
+              "Type": "dialogue"
+            }
+          ],
+          "ElseBody": [
+            {
+              "Speaker": "@player.name",
+              "Text": "プレイヤーは弱っています…",
+              "Type": "dialogue"
+            }
+          ],
+          "Type": "ifNode"
+        },
+        {
+          "Condition": {
+            "OrGroups": [
+              {
+                "AndGroups": [
+                  {
+                    "Terms": [
+                      {
+                        "Left": "npc.alice.hp",
+                        "Operator": "<",
+                        "RightValue": 30
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          "ThenBody": [
+            {
+              "Speaker": "@npc.alice.name",
+              "Text": "私、ちょっと弱ってるかも…",
+              "Type": "dialogue"
+            },
+            {
+              "Speaker": "@player.name",
+              "Text": "アリス、大丈夫か？",
+              "Type": "dialogue"
+            }
+          ],
+          "ElseBody": [
+            {
+              "Speaker": "@npc.alice.name",
+              "Text": "私はまだまだ元気よ！",
+              "Type": "dialogue"
+            },
+            {
+              "Speaker": "@player.name",
+              "Text": "それなら安心だ。",
+              "Type": "dialogue"
+            }
+          ],
+          "Type": "ifNode"
+        },
+        {
+          "Condition": {
+            "OrGroups": [
+              {
+                "AndGroups": [
+                  {
+                    "Terms": [
+                      {
+                        "Left": "npc.bob.hp",
+                        "Operator": ">",
+                        "RightValue": 40
+                      },
+                      {
+                        "Left": "flag",
+                        "Operator": "==",
+                        "RightValue": true
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          "ThenBody": [
+            {
+              "Speaker": "@npc.bob.name",
+              "Text": "俺は元気だし、フラグも立ってるぜ！",
+              "Type": "dialogue"
+            },
+            {
+              "Speaker": "@player.name",
+              "Text": "ボブは頼もしいな。",
+              "Type": "dialogue"
+            }
+          ],
+          "ElseBody": [
+            {
+              "Speaker": "@npc.bob.name",
+              "Text": "ちょっと調子悪いかも…",
+              "Type": "dialogue"
+            },
+            {
+              "Speaker": "@player.name",
+              "Text": "無理するなよ。",
+              "Type": "dialogue"
+            }
+          ],
+          "Type": "ifNode"
+        },
+        {
+          "Condition": {
+            "OrGroups": [
+              {
+                "AndGroups": [
+                  {
+                    "Terms": [
+                      {
+                        "Left": "npc.alice.hp",
+                        "Operator": "<",
+                        "RightValue": 10
+                      }
+                    ]
+                  },
+                  {
+                    "Terms": [
+                      {
+                        "Left": "npc.bob.hp",
+                        "Operator": "<",
+                        "RightValue": 10
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          "ThenBody": [
+            {
+              "Speaker": "@player.name",
+              "Text": "誰かが危険な状態だ！",
+              "Type": "dialogue"
+            }
+          ],
+          "ElseBody": [
+            {
+              "Speaker": "@player.name",
+              "Text": "全員まだ余裕があるな。",
+              "Type": "dialogue"
+            }
+          ],
+          "Type": "ifNode"
+        },
+        {
+          "Condition": {
+            "OrGroups": [
+              {
+                "AndGroups": [
+                  {
+                    "Terms": [
+                      {
+                        "Left": "flag",
+                        "Operator": "==",
+                        "RightValue": false
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          "ThenBody": [
+            {
+              "Speaker": "@player.name",
+              "Text": "フラグが false だ。",
+              "Type": "dialogue"
+            }
+          ],
+          "ElseBody": [
+            {
+              "Speaker": "@player.name",
+              "Text": "フラグは true だ。",
+              "Type": "dialogue"
+            }
+          ],
+          "Type": "ifNode"
+        },
+        {
+          "Condition": {
+            "OrGroups": [
+              {
+                "AndGroups": [
+                  {
+                    "Terms": [
+                      {
+                        "Left": "player.hp",
+                        "Operator": ">=",
+                        "RightValue": 500
+                      },
+                      {
+                        "Left": "npc.alice.hp",
+                        "Operator": "<",
+                        "RightValue": 50
+                      },
+                      {
+                        "Left": "flag",
+                        "Operator": "==",
+                        "RightValue": false
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          "ThenBody": [
+            {
+              "Speaker": "@player.name",
+              "Text": "（複合条件）少なくとも一つの条件が成立した。",
+              "Type": "dialogue"
+            }
+          ],
+          "ElseBody": [
+            {
+              "Speaker": "@player.name",
+              "Text": "（複合条件）どれも成立していない。",
+              "Type": "dialogue"
+            }
+          ],
+          "Type": "ifNode"
+        },
+        {
+          "Speaker": "@player.name",
+          "Text": "次にどうする？",
+          "Type": "dialogue"
+        },
+        {
+          "Options": [
+            {
+              "Text": "フラグを true にする",
+              "Jump": "SetFlagTrue"
+            },
+            {
+              "Text": "フラグを false のまま進む",
+              "Jump": "GoNext"
+            }
+          ],
+          "Type": "choice"
+        }
+      ]
+    },
+    {
+      "Label": "SetFlagTrue",
+      "Nodes": [
+        {
+          "Name": "/set",
           "Args": [
-            "isClear",
+            "flag",
             true
           ],
           "Type": "command"
         },
         {
-          "Name": "/set",
+          "Speaker": "@player.name",
+          "Text": "フラグを true に変更した。",
+          "Type": "dialogue"
+        },
+        {
+          "Name": "/jump",
           "Args": [
-            "player.hp",
-            50
+            "NextScene"
           ],
           "Type": "command"
-        },
+        }
+      ]
+    },
+    {
+      "Label": "GoNext",
+      "Nodes": [
         {
-          "Speaker": "",
-          "Text": "プレイヤーHP",
+          "Speaker": "@player.name",
+          "Text": "フラグは変更しませんでした。",
           "Type": "dialogue"
         },
         {
-          "Speaker": "",
-          "Text": "@player.hp",
+          "Name": "/jump",
+          "Args": [
+            "NextScene"
+          ],
+          "Type": "command"
+        }
+      ]
+    },
+    {
+      "Label": "NextScene",
+      "Nodes": [
+        {
+          "Speaker": "@player.name",
+          "Text": "次のシーンに到達しました。",
           "Type": "dialogue"
+        },
+        {
+          "Speaker": "@player.name",
+          "Text": "現在の flag → @flag",
+          "Type": "dialogue"
+        },
+        {
+          "Condition": {
+            "OrGroups": [
+              {
+                "AndGroups": [
+                  {
+                    "Terms": [
+                      {
+                        "Left": "flag",
+                        "Operator": "==",
+                        "RightValue": true
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          "ThenBody": [
+            {
+              "Speaker": "@player.name",
+              "Text": "flag は true です。",
+              "Type": "dialogue"
+            }
+          ],
+          "ElseBody": [
+            {
+              "Speaker": "@player.name",
+              "Text": "flag は false です。",
+              "Type": "dialogue"
+            }
+          ],
+          "Type": "ifNode"
         },
         {
           "Name": "/end",
