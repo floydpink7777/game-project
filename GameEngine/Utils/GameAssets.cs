@@ -13,9 +13,9 @@ namespace GameEngine.Utils
     {
         public static readonly Dictionary<TextureID, string> TexturePaths = new()
         {
-            //{ TextureID.Garen0, "images/Garen_0" },
-            //{ TextureID.Enemy1, "images/enemy_1" },
-            //{ TextureID.GarenE1, "images/Garen_E1" },
+            { TextureID.MessageFrame, "images/message_frame" },
+            { TextureID.MessageFrameNoName, "images/message_frame_no_name" },
+            { TextureID.ChoiceWindow, "images/choice_frame" },
             //{ TextureID.GarenR, "images/Garen_R" },
             //{ TextureID.Slash, "Effects/Slash" }
         };
@@ -46,7 +46,7 @@ namespace GameEngine.Utils
 
         public static void Load(ContentManager content, GraphicsDevice graphicsDevice)
         {
-            //TextureManager.Load(content, graphicsDevice);
+            TextureManager.Load(content, graphicsDevice);
             //SoundManager.Load(content);
             FontManager.Load(content, graphicsDevice);
         }

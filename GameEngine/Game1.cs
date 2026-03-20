@@ -13,8 +13,6 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Newtonsoft.Json;
-using System.CodeDom.Compiler;
-using System.Collections.Generic;
 using System.IO;
 using static GameEngine.System.GameConfig;
 
@@ -54,11 +52,11 @@ namespace GameEngine
 
             _gameWorld = new GameWorld();
             var evaluator = new ObjectEvaluator(_gameWorld, vars);
-            var player = new Player { Name = "トニー", Hp = 1000 };
+            var player = new Player { Name = "主人公", Hp = 1000 };
             _gameWorld.Player = player;
 
             // NPC を登録
-            _gameWorld.NPCs["alice"] = new NPC { Name = "アリス", Hp = 20 };
+            _gameWorld.NPCs["alice"] = new NPC { Name = "ヒロイン", Hp = 20 };
             _gameWorld.NPCs["bob"] = new NPC { Name = "ボブ", Hp = 50 };
 
             // 公式変数（ゲームロジックと同期する）
@@ -80,6 +78,7 @@ namespace GameEngine
             _input = new InputManager();
             _events = new EventManager(runner);
             _executor = new NodeExecutor(vars, evaluator);
+            MessageWindowRenderer.InitDebug(GraphicsDevice);
 
             base.Initialize();
         }
@@ -87,28 +86,54 @@ namespace GameEngine
         protected override void LoadContent()
         {
             _spriteBatch = new SpriteBatch(GraphicsDevice);
-
-            _ui = new UIManager(_spriteBatch);
-
             GameAssets.Load(Content, GraphicsDevice);
-
-            // TODO: use this.Content to load your game content here
+            _ui = new UIManager(_spriteBatch);
         }
 
         protected override void Update(GameTime gameTime)
         {
             _input.Update();
+            _ui.Update(gameTime);
 
             switch (_gameState)
             {
                 case GameState.WaitingForNext:
                     if (_input.Keyboard.Pressed(Keys.Enter))
-                        _gameState = GameState.Idle;
-                    return;
+                    {
+                        // ① まだタイプ途中なら全文表示
+                        if (!_ui.IsPageComplete)
+                        {
+                            _ui.SkipToPageEnd();
+                            return;
+                        }
 
+                        // ② ページが終わっていて、次ページがあるならページ送り
+                        if (_ui.NextPage())
+                            return;
+
+                        // ③ 最終ページなら次のノードへ
+                        _gameState = GameState.Idle;
+                    }
+                    return;
                 case GameState.WaitingForChoice:
-                    if (_input.Keyboard.Pressed(Keys.D1)) SelectChoice(0);
-                    if (_input.Keyboard.Pressed(Keys.D2)) SelectChoice(1);
+
+                    // カーソル移動
+                    if (_input.Keyboard.Pressed(Keys.Up))
+                    {
+                        _ui.MoveCursor(-1);
+                    }
+
+                    if (_input.Keyboard.Pressed(Keys.Down))
+                    {
+                        _ui.MoveCursor(+1);
+                    }
+
+                    // Enter で決定
+                    if (_input.Keyboard.Pressed(Keys.Enter))
+                    {
+                        SelectChoice(_ui.CursorIndex);
+                    }
+
                     return;
 
                 case GameState.Idle:
@@ -129,10 +154,11 @@ namespace GameEngine
                     switch (node)
                     {
                         case DialogueNode:
+                            _ui.SetDialogue(_gameSession.Speaker, _gameSession.Text, FontManager.GetFont(FontID.Main, 24));
                             _gameState = GameState.WaitingForNext;
                             break;
-
-                        case ChoiceNode:
+                        case ChoiceNode choiceNode:
+                            _ui.SetChoices(_gameSession.Choices);
                             _gameState = GameState.WaitingForChoice;
                             break;
                     }
@@ -146,15 +172,18 @@ namespace GameEngine
 
             _spriteBatch.Begin();
 
-
             switch (_gameState)
             {
                 case GameState.WaitingForChoice:
-                    _ui.DrawChoices(_gameSession.Choices, FontManager.GetFont(FontID.Main,48));
+                    _ui.DrawChoices(
+                        FontManager.GetFont(FontID.Main, 24)
+                    );
                     break;
 
                 default:
-                    _ui.DrawDialogue(_gameSession.Speaker, _gameSession.Text, FontManager.GetFont(FontID.Main, 48));
+                    _ui.DrawDialogue(
+                        FontManager.GetFont(FontID.Main, 24)
+                    );
                     break;
             }
 

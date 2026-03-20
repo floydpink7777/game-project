@@ -11,17 +11,11 @@ namespace GameEngine.System
     {
         public enum TextureID
         {
-            // キャラ画像
-            Garen0,
-
-            //敵画像
-            Enemy1,
-
-            //スキル画像
-            GarenE1,
-            GarenR,
-            // エフェクト用
-            Slash
+            // 画像
+            MessageFrame,
+            MessageFrameNoName,
+            ChoiceWindow,
+            WhitePixel
         }
 
         public enum SoundID

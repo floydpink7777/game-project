@@ -21,9 +21,9 @@
     <PackageReference Include="MonoGame.Content.Builder.Task" Version="3.8.*" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
   </ItemGroup>
-  <ItemGroup>
+  <!--<ItemGroup>
     <ProjectReference Include="..\ScriptParser\ScriptParser.csproj" />
-  </ItemGroup>
+  </ItemGroup>-->
   <ItemGroup>
     <None Update="Content\Events\start.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

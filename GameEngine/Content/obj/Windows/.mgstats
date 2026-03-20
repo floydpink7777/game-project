@@ -1,1 +1,4 @@
 Source File,Dest File,Processor Type,Content Type,Source File Size,Dest File Size,Build Seconds
+"E:/NovelEngine/GameEngine/Content/images/choice_frame.png","E:/NovelEngine/GameEngine/Content/bin/Windows/images/choice_frame.xnb","TextureProcessor","Texture2DContent",15501,83909,0.3321277
+"E:/NovelEngine/GameEngine/Content/images/message_frame_no_name.png","E:/NovelEngine/GameEngine/Content/bin/Windows/images/message_frame_no_name.xnb","TextureProcessor","Texture2DContent",54829,747877,0.3678983
+"E:/NovelEngine/GameEngine/Content/images/message_frame.png","E:/NovelEngine/GameEngine/Content/bin/Windows/images/message_frame.xnb","TextureProcessor","Texture2DContent",70178,877125,0.0282766
