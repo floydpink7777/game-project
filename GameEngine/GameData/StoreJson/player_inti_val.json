@@ -1,0 +1,14 @@
+[
+  {
+    "Id": "Orphan",
+    "Name": "名無し",
+    "Gender": "Unknown",
+    "Age": 16
+  },
+  {
+    "Id": "Noble",
+    "Name": "貴族の子息",
+    "Gender": "Male",
+    "Age": 18
+  }
+]

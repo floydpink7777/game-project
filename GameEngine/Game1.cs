@@ -1,6 +1,7 @@
 ﻿using FontStashSharp;
 using GameEngine.Events;
 using GameEngine.Events.RuntimeNode;
+using GameEngine.GameData.DataStore;
 using GameEngine.GameData.Npc;
 using GameEngine.GameData.Player;
 using GameEngine.System.Core;
@@ -45,14 +46,18 @@ namespace GameEngine
 
         protected override void Initialize()
         {
-            // TODO: Add your initialization logic here
             _gameSession = new GameSession();
 
             vars = new VariableStore();
 
             _gameWorld = new GameWorld();
             var evaluator = new ObjectEvaluator(_gameWorld, vars);
-            var player = new Player { Name = "主人公", Hp = 1000 };
+
+            // 初期データの読み込み
+            DataManager.Load();
+            var a = PlayerInitValStore.Items["Orphan"];
+
+            var player = new Player { Name = a.Name, Hp = 1000 };
             _gameWorld.Player = player;
 
             // NPC を登録
