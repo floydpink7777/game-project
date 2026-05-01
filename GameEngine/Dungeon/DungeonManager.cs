@@ -13,6 +13,9 @@ namespace GameEngine.Dungeon
         private int _screenWidth;
         private int _screenHeight;
 
+        public bool ReachedGoal { get; private set; } = false;
+
+
         public DungeonManager(TileMap map, Adventurer adventurer, Texture2D playerTexture,
                               int screenWidth, int screenHeight)
         {
@@ -41,6 +44,15 @@ namespace GameEngine.Dungeon
                 _frame = (int)((gameTime.TotalGameTime.TotalMilliseconds / 150) % 3);
             else
                 _frame = 1;
+
+            var tileX = (int)(_adventurer.Position.X / _map.TileSize);
+            var tileY = (int)(_adventurer.Position.Y / _map.TileSize);
+
+            if (tileX == _map.TileMapData.GoalPos.X &&
+                tileY == _map.TileMapData.GoalPos.Y)
+            {
+                ReachedGoal = true;
+            }
         }
 
         public void Draw(SpriteBatch sb)

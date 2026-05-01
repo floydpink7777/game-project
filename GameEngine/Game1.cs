@@ -55,6 +55,8 @@ namespace GameEngine
 
         private DungeonManager _dngeonManager;
 
+        int mapSize = 31;
+
         //private int currentAnimationFrame = 0;
 
         public Game1()
@@ -126,7 +128,7 @@ namespace GameEngine
             _adventurerTex = Content.Load<Texture2D>("images/adventurer1");
 
             //var tiles = MapLoader.LoadCsv("Content/Maps/map1.csv");
-            var tiles = new int[31, 31];
+            var tiles = new int[mapSize, mapSize];
             var data = new TileMapData(tiles);
 
             // 壁タイルIDを登録
@@ -135,12 +137,12 @@ namespace GameEngine
             _map = new TileMap(tileset, data, tileSize: 32);
 
             var generator = new DungeonGenerator();
-            generator.Generate(_map);
+            generator.Generate(data);
 
             _adventurer = new Adventurer();
-            //_adventurer.Position = new Vector2(_map.StartPos.X * 32, _map.StartPos.Y * 32);
+            _adventurer.Position = new Vector2(_map.TileMapData.StartPos.X * 32, _map.TileMapData.StartPos.Y * 32);
 
-            _adventurer.Position = new Vector2(400, 240);
+            //_adventurer.Position = new Vector2(400, 240);
 
             _dngeonManager = new DungeonManager(
                 _map, 
@@ -174,6 +176,11 @@ namespace GameEngine
                 case GameMode.Dungeon:
 
                     _dngeonManager.Update(gameTime);
+
+                    if (_dngeonManager.ReachedGoal)
+                    {
+                        NextFloor();
+                    }
 
                     //// ★ マウスドラッグでカメラ移動 ★
                     //var mouse = Mouse.GetState();
@@ -247,5 +254,29 @@ namespace GameEngine
 
             base.Draw(gameTime);
         }
+
+        private void NextFloor()
+        {
+            // 新しい階層を生成
+            var tiles = new int[mapSize, mapSize];
+            var data = new TileMapData(tiles);
+            data.SolidTiles.Add(6);
+
+            var generator = new DungeonGenerator();
+            generator.Generate(data);
+
+            _map = new TileMap(Content.Load<Texture2D>("images/tileset"), data, 32);
+
+            _adventurer.Position = data.StartPos.ToVector2() * 32;
+
+            _dngeonManager = new DungeonManager(
+                _map,
+                _adventurer,
+                _adventurerTex,
+                _graphics.PreferredBackBufferWidth,
+                _graphics.PreferredBackBufferHeight
+            );
+        }
+
     }
 }

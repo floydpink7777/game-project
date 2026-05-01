@@ -36,7 +36,7 @@ namespace GameEngine.Dungeon
 
         public void Draw(SpriteBatch spriteBatch)
         {
-            int drawSize = TileSize * 2; // 32 → 64 に見せる
+            int drawSize = TileSize; //* 2; // 32 → 64 に見せる
 
             for (int y = 0; y < TileMapData.Height; y++)
             {

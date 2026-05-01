@@ -25,18 +25,6 @@
 #begin Fonts/NotoSansJP-Regular.ttf
 /copy:Fonts/NotoSansJP-Regular.ttf
 
-#begin images/adventurer.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
-/processorParam:GenerateMipmaps=False
-/processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:images/adventurer.png
-
 #begin images/adventurer1.png
 /importer:TextureImporter
 /processor:TextureProcessor

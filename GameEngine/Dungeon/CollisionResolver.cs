@@ -14,7 +14,7 @@ namespace GameEngine.Dungeon
         {
             Vector2 pos = adventurer.Position;
 
-            int scale = 2;
+            int scale = 1;
 
             // --- X方向 ---
             pos.X += adventurer.Velocity.X;
@@ -61,7 +61,7 @@ namespace GameEngine.Dungeon
 
         private static bool IsColliding(Rectangle bounds, TileMap map, out int tileX, out int tileY)
         {
-            int scale = 2; // TileMap.Draw の拡大率
+            int scale = 1; // TileMap.Draw の拡大率
 
             int left = bounds.Left / (map.TileSize * scale);
             int right = (bounds.Right - 1) / (map.TileSize * scale);
@@ -83,7 +83,7 @@ namespace GameEngine.Dungeon
 
         public static void ClampToMap(Adventurer adventurer, TileMap map)
         {
-            int scale = 2; // Draw と Collision に合わせる
+            int scale = 1; // Draw と Collision に合わせる
 
             int mapWidthPx = map.TileMapData.Width * map.TileSize * scale;
             int mapHeightPx = map.TileMapData.Height * map.TileSize * scale;

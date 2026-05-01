@@ -1,5 +1,6 @@
 ﻿using GameEngine.Dungeon;
 using Microsoft.Xna.Framework;
+using SharpDX.Direct3D9;
 using System;
 using System.Collections.Generic;
 
@@ -7,125 +8,213 @@ public class DungeonGenerator
 {
     private Random rnd = new();
 
-    public void Generate(TileMap map)
+    public void Generate(TileMapData tileMapData)
     {
-        FillWalls(map);
+        FillWalls(tileMapData);
 
-        var root = new Rectangle(0, 0, map.TileMapData.Width, map.TileMapData.Height);
-        GenerateBSP(map, root, rnd.Next(2) == 0);
+        var root = new Rectangle(0, 0, tileMapData.Width, tileMapData.Height);
+        GenerateBSP(tileMapData, root, rnd.Next(2) == 0);
 
-        if (map.TileMapData.Rooms.Count == 0)
+        if (tileMapData.Rooms.Count == 0)
             return;
 
-        map.TileMapData.StartPos = GetRoomCenter(map.TileMapData.Rooms[0]);
-        map.TileMapData.GoalPos = FindFarthestPoint(map, map.TileMapData.StartPos);
+        // ★ ここで「本当に孤立している部屋だけ」繋ぐ
+        EnsureAllRoomsConnected(tileMapData);
 
-        map.TileMapData.Tiles[map.TileMapData.GoalPos.X, map.TileMapData.GoalPos.Y] = 51;
+        var startRoom = tileMapData.Rooms[0];
+        tileMapData.StartPos = GetRandomFloorInsideRoom(tileMapData, startRoom);
+        tileMapData.GoalPos = FindFarthestPoint(tileMapData, tileMapData.StartPos);
+
+        tileMapData.Tiles[tileMapData.GoalPos.X, tileMapData.GoalPos.Y] = 51;
     }
 
-    private void FillWalls(TileMap map)
+    private void FillWalls(TileMapData tileMapData)
     {
-        for (int y = 0; y < map.TileMapData.Height; y++)
-            for (int x = 0; x < map.TileMapData.Width; x++)
-                map.TileMapData.Tiles[x, y] = 6;
+        for (int y = 0; y < tileMapData.Height; y++)
+            for (int x = 0; x < tileMapData.Width; x++)
+                tileMapData.Tiles[x, y] = 6;
     }
 
-    private Rectangle CreateRoom(TileMap map, Rectangle rect)
+    private Rectangle? CreateRoom(TileMapData map, Rectangle rect)
     {
-        if (rect.Width < map.TileMapData.MinRoomWidth || rect.Height < map.TileMapData.MinRoomHeight)
-            return rect;
+        if (rect.Width < map.MinRoomWidth || rect.Height < map.MinRoomHeight)
+            return null;
 
-        int x1 = rnd.Next(rect.Width - map.TileMapData.MinRoomWidth + 1);
-        int x2 = rnd.Next(rect.Width - map.TileMapData.MinRoomWidth + 1);
-        int y1 = rnd.Next(rect.Height - map.TileMapData.MinRoomHeight + 1);
-        int y2 = rnd.Next(rect.Height - map.TileMapData.MinRoomHeight + 1);
+        int maxRoomWidth = rect.Width;
+        int maxRoomHeight = rect.Height;
 
-        int x = rect.X + Math.Min(x1, x2);
-        int w = map.TileMapData.MinRoomWidth + Math.Abs(x1 - x2);
+        int roomWidth = rnd.Next(map.MinRoomWidth, maxRoomWidth + 1);
+        int roomHeight = rnd.Next(map.MinRoomHeight, maxRoomHeight + 1);
 
-        int y = rect.Y + Math.Min(y1, y2);
-        int h = map.TileMapData.MinRoomHeight + Math.Abs(y1 - y2);
+        int roomX = rect.X + rnd.Next(0, rect.Width - roomWidth + 1);
+        int roomY = rect.Y + rnd.Next(0, rect.Height - roomHeight + 1);
 
-        for (int iy = 0; iy < h; iy++)
-            for (int ix = 0; ix < w; ix++)
-                map.TileMapData.Tiles[x + ix, y + iy] = 0;
+        for (int y = 0; y < roomHeight; y++)
+            for (int x = 0; x < roomWidth; x++)
+                map.Tiles[roomX + x, roomY + y] = 0;
 
-        var room = new Rectangle(x, y, w, h);
-        map.TileMapData.Rooms.Add(room);
+        var room = new Rectangle(roomX, roomY, roomWidth, roomHeight);
+        map.Rooms.Add(room);
 
         return room;
     }
 
-    private void ConnectRoom(TileMap map, Rectangle parent, Rectangle child, int divline, bool horizontal)
+    private void ConnectRoom(TileMapData map, Rectangle r1, Rectangle r2, int divline, bool horizontal)
     {
         if (horizontal)
         {
-            int x1 = parent.X + rnd.Next(Math.Max(1, parent.Width));
-            int x2 = child.X + rnd.Next(Math.Max(1, child.Width));
+            int left = Math.Max(r1.X, r2.X);
+            int right = Math.Min(r1.X + r1.Width - 1, r2.X + r2.Width - 1);
 
-            int minX = Math.Min(x1, x2);
-            int maxX = Math.Max(x1, x2);
+            if (left > right)
+            {
+                left = r1.X + r1.Width / 2;
+                right = r2.X + r2.Width / 2;
 
-            for (int x = minX; x <= maxX; x++)
-                map.TileMapData.Tiles[x, divline] = 0;
+                if (left > right)
+                {
+                    int tmp = left;
+                    left = right;
+                    right = tmp;
+                }
+            }
 
-            for (int i = 1; divline - i >= 0 && map.TileMapData.Tiles[x1, divline - i] == 6; i++)
-                map.TileMapData.Tiles[x1, divline - i] = 0;
+            int x = rnd.Next(left, right + 1);
 
-            for (int i = 1; divline + i < map.TileMapData.Height && map.TileMapData.Tiles[x2, divline + i] == 6; i++)
-                map.TileMapData.Tiles[x2, divline + i] = 0;
+            map.Tiles[x, divline] = 0;
+            if (divline + 1 < map.Height)
+                map.Tiles[x, divline + 1] = 0;
+
+            for (int y = divline - 1; y >= 0; y--)
+            {
+                if (map.Tiles[x, y] == 0) break;
+                map.Tiles[x, y] = 0;
+                if (x + 1 < map.Width) map.Tiles[x + 1, y] = 0;
+            }
+
+            for (int y = divline + 1; y < map.Height; y++)
+            {
+                if (map.Tiles[x, y] == 0) break;
+                map.Tiles[x, y] = 0;
+                if (x + 1 < map.Width) map.Tiles[x + 1, y] = 0;
+            }
         }
         else
         {
-            int y1 = parent.Y + rnd.Next(Math.Max(1, parent.Height));
-            int y2 = child.Y + rnd.Next(Math.Max(1, child.Height));
+            int top = Math.Max(r1.Y, r2.Y);
+            int bottom = Math.Min(r1.Y + r1.Height - 1, r2.Y + r2.Height - 1);
 
-            int minY = Math.Min(y1, y2);
-            int maxY = Math.Max(y1, y2);
+            if (top > bottom)
+            {
+                top = r1.Y + r1.Height / 2;
+                bottom = r2.Y + r2.Height / 2;
 
-            for (int y = minY; y <= maxY; y++)
-                map.TileMapData.Tiles[divline, y] = 0;
+                if (top > bottom)
+                {
+                    int tmp = top;
+                    top = bottom;
+                    bottom = tmp;
+                }
+            }
 
-            for (int i = 1; divline - i >= 0 && map.TileMapData.Tiles[divline - i, y1] == 6; i++)
-                map.TileMapData.Tiles[divline - i, y1] = 0;
+            int y = rnd.Next(top, bottom + 1);
 
-            for (int i = 1; divline + i < map.TileMapData.Width && map.TileMapData.Tiles[divline + i, y2] == 6; i++)
-                map.TileMapData.Tiles[divline + i, y2] = 0;
+            map.Tiles[divline, y] = 0;
+            if (divline + 1 < map.Width)
+                map.Tiles[divline + 1, y] = 0;
+
+            for (int x = divline - 1; x >= 0; x--)
+            {
+                if (map.Tiles[x, y] == 0) break;
+                map.Tiles[x, y] = 0;
+                if (y + 1 < map.Height) map.Tiles[x, y + 1] = 0;
+            }
+
+            for (int x = divline + 1; x < map.Width; x++)
+            {
+                if (map.Tiles[x, y] == 0) break;
+                map.Tiles[x, y] = 0;
+                if (y + 1 < map.Height) map.Tiles[x, y + 1] = 0;
+            }
         }
     }
 
-    private Rectangle GenerateBSP(TileMap map, Rectangle rect, bool horizontal)
+    private Rectangle? GenerateBSP(TileMapData map, Rectangle rect, bool horizontal)
     {
-        if (rect.Width < map.TileMapData.MinRoomWidth * 2 || rect.Height < map.TileMapData.MinRoomHeight * 2)
+        if (rect.Width < map.MinRoomWidth * 2 || rect.Height < map.MinRoomHeight * 2)
             return CreateRoom(map, rect);
 
         if (horizontal)
         {
-            int div = rect.Height / 2 + rnd.Next(-2, 3);
-            div = Math.Clamp(div, map.TileMapData.MinRoomHeight, rect.Height - map.TileMapData.MinRoomHeight);
+            int minDiv = map.MinRoomHeight;
+            int maxDiv = rect.Height - map.MinRoomHeight;
+
+            if (minDiv >= maxDiv)
+                return CreateRoom(map, rect);
+
+            int div = rnd.Next(minDiv, maxDiv + 1);
 
             var top = new Rectangle(rect.X, rect.Y, rect.Width, div);
             var bottom = new Rectangle(rect.X, rect.Y + div, rect.Width, rect.Height - div);
 
-            var r1 = GenerateBSP(map, top, false);
-            var r2 = GenerateBSP(map, bottom, false);
+            var room1 = GenerateBSP(map, top, false);
+            var room2 = GenerateBSP(map, bottom, false);
 
-            ConnectRoom(map, r1, r2, rect.Y + div, true);
-            return r1;
+            if (room1 != null && room2 != null)
+            {
+                var r1 = GetNearestRoomToDiv(room1.Value, top, bottom, true);
+                var r2 = GetNearestRoomToDiv(room2.Value, top, bottom, true);
+
+                ConnectRoom(map, r1, r2, rect.Y + div, true);
+            }
+
+            return room1 ?? room2;
         }
         else
         {
-            int div = rect.Width / 2 + rnd.Next(-2, 3);
-            div = Math.Clamp(div, map.TileMapData.MinRoomWidth, rect.Width - map.TileMapData.MinRoomWidth);
+            int minDiv = map.MinRoomWidth;
+            int maxDiv = rect.Width - map.MinRoomWidth;
+
+            if (minDiv >= maxDiv)
+                return CreateRoom(map, rect);
+
+            int div = rnd.Next(minDiv, maxDiv + 1);
 
             var left = new Rectangle(rect.X, rect.Y, div, rect.Height);
             var right = new Rectangle(rect.X + div, rect.Y, rect.Width - div, rect.Height);
 
-            var r1 = GenerateBSP(map, left, true);
-            var r2 = GenerateBSP(map, right, true);
+            var room1 = GenerateBSP(map, left, true);
+            var room2 = GenerateBSP(map, right, true);
 
-            ConnectRoom(map, r1, r2, rect.X + div, false);
-            return r1;
+            if (room1 != null && room2 != null)
+            {
+                var r1 = GetNearestRoomToDiv(room1.Value, left, right, false);
+                var r2 = GetNearestRoomToDiv(room2.Value, left, right, false);
+
+                ConnectRoom(map, r1, r2, rect.X + div, false);
+            }
+
+            return room1 ?? room2;
+        }
+    }
+
+    private Rectangle GetNearestRoomToDiv(Rectangle room, Rectangle a, Rectangle b, bool horizontal)
+    {
+        if (horizontal)
+        {
+            if (room.X + room.Width >= a.X - 2 && room.X <= a.X + a.Width + 2)
+                return room;
+
+            int cx = room.X + room.Width / 2;
+            return new Rectangle(cx, room.Y, 1, room.Height);
+        }
+        else
+        {
+            if (room.Y + room.Height >= a.Y - 2 && room.Y <= a.Y + a.Height + 2)
+                return room;
+
+            int cy = room.Y + room.Height / 2;
+            return new Rectangle(room.X, cy, room.Width, 1);
         }
     }
 
@@ -137,10 +226,10 @@ public class DungeonGenerator
         );
     }
 
-    private Point FindFarthestPoint(TileMap map, Point start)
+    private Point FindFarthestPoint(TileMapData tileMapData, Point start)
     {
-        int w = map.TileMapData.Width;
-        int h = map.TileMapData.Height;
+        int w = tileMapData.Width;
+        int h = tileMapData.Height;
 
         bool[,] visited = new bool[w, h];
         Queue<(Point p, int dist)> q = new();
@@ -175,7 +264,7 @@ public class DungeonGenerator
                 if (visited[nx, ny])
                     continue;
 
-                if (map.TileMapData.Tiles[nx, ny] != 0)
+                if (tileMapData.Tiles[nx, ny] != 0)
                     continue;
 
                 visited[nx, ny] = true;
@@ -184,5 +273,170 @@ public class DungeonGenerator
         }
 
         return farthest;
+    }
+
+    private Point GetRandomFloorInsideRoom(TileMapData map, Rectangle room)
+    {
+        List<Point> floors = new();
+
+        for (int y = room.Y; y < room.Y + room.Height; y++)
+        {
+            for (int x = room.X; x < room.X + room.Width; x++)
+            {
+                if (map.Tiles[x, y] == 0)
+                    floors.Add(new Point(x, y));
+            }
+        }
+
+        if (floors.Count == 0)
+            return GetRoomCenter(room);
+
+        return floors[rnd.Next(floors.Count)];
+    }
+
+    // =========================
+    // ここから「無駄な通路ゼロ」用の接続処理
+    // =========================
+
+    private void EnsureAllRoomsConnected(TileMapData map)
+    {
+        int n = map.Rooms.Count;
+        if (n <= 1) return;
+
+        while (true)
+        {
+            bool[] connected = new bool[n];
+            MarkReachableRoomsFrom(map, 0, connected);
+
+            bool all = true;
+            for (int i = 0; i < n; i++)
+            {
+                if (!connected[i])
+                {
+                    all = false;
+                    break;
+                }
+            }
+
+            if (all) break;
+
+            int from = -1, to = -1;
+            int bestDist = int.MaxValue;
+
+            for (int i = 0; i < n; i++)
+            {
+                if (!connected[i]) continue;
+
+                for (int j = 0; j < n; j++)
+                {
+                    if (connected[j]) continue;
+
+                    int dx = map.Rooms[i].Center.X - map.Rooms[j].Center.X;
+                    int dy = map.Rooms[i].Center.Y - map.Rooms[j].Center.Y;
+                    int dist = dx * dx + dy * dy;
+
+                    if (dist < bestDist)
+                    {
+                        bestDist = dist;
+                        from = i;
+                        to = j;
+                    }
+                }
+            }
+
+            if (from == -1 || to == -1) break;
+
+            var a = GetRoomEdgePoint(map, map.Rooms[from]);
+            var b = GetRoomEdgePoint(map, map.Rooms[to]);
+            CarveCorridor(map, a, b);
+        }
+    }
+
+    private void MarkReachableRoomsFrom(TileMapData map, int startRoomIndex, bool[] connected)
+    {
+        int w = map.Width;
+        int h = map.Height;
+
+        bool[,] visited = new bool[w, h];
+        Queue<Point> q = new();
+
+        var startRoom = map.Rooms[startRoomIndex];
+        Point start = GetRandomFloorInsideRoom(map, startRoom);
+
+        q.Enqueue(start);
+        visited[start.X, start.Y] = true;
+
+        connected[startRoomIndex] = true;
+
+        while (q.Count > 0)
+        {
+            var p = q.Dequeue();
+
+            for (int i = 0; i < map.Rooms.Count; i++)
+            {
+                if (connected[i]) continue;
+                if (map.Rooms[i].Contains(p))
+                    connected[i] = true;
+            }
+
+            int[] dx = { 1, -1, 0, 0 };
+            int[] dy = { 0, 0, 1, -1 };
+
+            for (int k = 0; k < 4; k++)
+            {
+                int nx = p.X + dx[k];
+                int ny = p.Y + dy[k];
+
+                if (nx < 0 || ny < 0 || nx >= w || ny >= h) continue;
+                if (visited[nx, ny]) continue;
+                if (map.Tiles[nx, ny] != 0) continue;
+
+                visited[nx, ny] = true;
+                q.Enqueue(new Point(nx, ny));
+            }
+        }
+    }
+
+    private void CarveCorridor(TileMapData map, Point a, Point b)
+    {
+        int x = a.X;
+        int y = a.Y;
+
+        int stepX = a.X < b.X ? 1 : -1;
+        while (x != b.X)
+        {
+            map.Tiles[x, y] = 0;
+            if (y + 1 < map.Height) map.Tiles[x, y + 1] = 0;
+            x += stepX;
+        }
+
+        int stepY = a.Y < b.Y ? 1 : -1;
+        while (y != b.Y)
+        {
+            map.Tiles[x, y] = 0;
+            if (x + 1 < map.Width) map.Tiles[x + 1, y] = 0;
+            y += stepY;
+        }
+    }
+
+    private Point GetRoomEdgePoint(TileMapData map, Rectangle room)
+    {
+        List<Point> edges = new();
+
+        for (int x = room.X; x < room.X + room.Width; x++)
+        {
+            if (map.Tiles[x, room.Y] == 0) edges.Add(new Point(x, room.Y));
+            if (map.Tiles[x, room.Y + room.Height - 1] == 0) edges.Add(new Point(x, room.Y + room.Height - 1));
+        }
+        for (int y = room.Y; y < room.Y + room.Height; y++)
+        {
+            if (map.Tiles[room.X, y] == 0) edges.Add(new Point(room.X, y));
+            if (map.Tiles[room.X + room.Width - 1, y] == 0) edges.Add(new Point(room.X + room.Width - 1, y));
+        }
+
+        if (edges.Count == 0)
+            return GetRoomCenter(room);
+
+        return edges[rnd.Next(edges.Count)];
     }
 }
