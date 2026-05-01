@@ -1,298 +1,32 @@
 {
   "Event": {
     "EventID": "start",
-    "EventName": "IfTest_Characters",
-    "EventType": "normal",
-    "Members": [
-      "player",
-      "alice",
-      "bob"
-    ]
+    "EventName": null,
+    "EventType": null,
+    "Members": []
   },
   "Scenes": [
     {
       "Label": "Start",
       "Nodes": [
         {
-          "Name": "/set",
-          "Args": [
-            "flag",
-            false
-          ],
-          "Type": "command"
-        },
-        {
-          "Speaker": "@player.name",
-          "Text": "条件分岐テストを開始します。",
-          "Type": "dialogue"
-        },
-        {
-          "Speaker": "@player.name",
-          "Text": "現在のHP → プレイヤー:@player.hp / アリス:@npc.alice.hp / ボブ:@npc.bob.hp",
-          "Type": "dialogue"
-        },
-        {
-          "Condition": {
-            "OrGroups": [
-              {
-                "AndGroups": [
-                  {
-                    "Terms": [
-                      {
-                        "Left": "player.hp",
-                        "Operator": ">=",
-                        "RightValue": 1000
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          "ThenBody": [
-            {
-              "Speaker": "@player.name",
-              "Text": "プレイヤーはとても元気です！",
-              "Type": "dialogue"
-            }
-          ],
-          "ElseBody": [
-            {
-              "Speaker": "@player.name",
-              "Text": "プレイヤーは弱っています…",
-              "Type": "dialogue"
-            }
-          ],
-          "Type": "ifNode"
-        },
-        {
-          "Condition": {
-            "OrGroups": [
-              {
-                "AndGroups": [
-                  {
-                    "Terms": [
-                      {
-                        "Left": "npc.alice.hp",
-                        "Operator": "<",
-                        "RightValue": 30
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          "ThenBody": [
-            {
-              "Speaker": "@npc.alice.name",
-              "Text": "私、ちょっと弱ってるかも…",
-              "Type": "dialogue"
-            },
-            {
-              "Speaker": "@player.name",
-              "Text": "アリス、大丈夫か？",
-              "Type": "dialogue"
-            }
-          ],
-          "ElseBody": [
-            {
-              "Speaker": "@npc.alice.name",
-              "Text": "私はまだまだ元気よ！",
-              "Type": "dialogue"
-            },
-            {
-              "Speaker": "@player.name",
-              "Text": "それなら安心だ。",
-              "Type": "dialogue"
-            }
-          ],
-          "Type": "ifNode"
-        },
-        {
-          "Condition": {
-            "OrGroups": [
-              {
-                "AndGroups": [
-                  {
-                    "Terms": [
-                      {
-                        "Left": "npc.bob.hp",
-                        "Operator": ">",
-                        "RightValue": 40
-                      },
-                      {
-                        "Left": "flag",
-                        "Operator": "==",
-                        "RightValue": true
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          "ThenBody": [
-            {
-              "Speaker": "@npc.bob.name",
-              "Text": "俺は元気だし、フラグも立ってるぜ！",
-              "Type": "dialogue"
-            },
-            {
-              "Speaker": "@player.name",
-              "Text": "ボブは頼もしいな。",
-              "Type": "dialogue"
-            }
-          ],
-          "ElseBody": [
-            {
-              "Speaker": "@npc.bob.name",
-              "Text": "ちょっと調子悪いかも…",
-              "Type": "dialogue"
-            },
-            {
-              "Speaker": "@player.name",
-              "Text": "無理するなよ。",
-              "Type": "dialogue"
-            }
-          ],
-          "Type": "ifNode"
-        },
-        {
-          "Condition": {
-            "OrGroups": [
-              {
-                "AndGroups": [
-                  {
-                    "Terms": [
-                      {
-                        "Left": "npc.alice.hp",
-                        "Operator": "<",
-                        "RightValue": 10
-                      }
-                    ]
-                  },
-                  {
-                    "Terms": [
-                      {
-                        "Left": "npc.bob.hp",
-                        "Operator": "<",
-                        "RightValue": 10
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          "ThenBody": [
-            {
-              "Speaker": "@player.name",
-              "Text": "誰かが危険な状態だ！",
-              "Type": "dialogue"
-            }
-          ],
-          "ElseBody": [
-            {
-              "Speaker": "@player.name",
-              "Text": "全員まだ余裕があるな。",
-              "Type": "dialogue"
-            }
-          ],
-          "Type": "ifNode"
-        },
-        {
-          "Condition": {
-            "OrGroups": [
-              {
-                "AndGroups": [
-                  {
-                    "Terms": [
-                      {
-                        "Left": "flag",
-                        "Operator": "==",
-                        "RightValue": false
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          "ThenBody": [
-            {
-              "Speaker": "@player.name",
-              "Text": "フラグが false だ。",
-              "Type": "dialogue"
-            }
-          ],
-          "ElseBody": [
-            {
-              "Speaker": "@player.name",
-              "Text": "フラグは true だ。",
-              "Type": "dialogue"
-            }
-          ],
-          "Type": "ifNode"
-        },
-        {
-          "Condition": {
-            "OrGroups": [
-              {
-                "AndGroups": [
-                  {
-                    "Terms": [
-                      {
-                        "Left": "player.hp",
-                        "Operator": ">=",
-                        "RightValue": 500
-                      },
-                      {
-                        "Left": "npc.alice.hp",
-                        "Operator": "<",
-                        "RightValue": 50
-                      },
-                      {
-                        "Left": "flag",
-                        "Operator": "==",
-                        "RightValue": false
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          "ThenBody": [
-            {
-              "Speaker": "@player.name",
-              "Text": "（複合条件）少なくとも一つの条件が成立した。",
-              "Type": "dialogue"
-            }
-          ],
-          "ElseBody": [
-            {
-              "Speaker": "@player.name",
-              "Text": "（複合条件）どれも成立していない。",
-              "Type": "dialogue"
-            }
-          ],
-          "Type": "ifNode"
-        },
-        {
-          "Speaker": "@player.name",
-          "Text": "次にどうする？",
+          "Speaker": "女神様",
+          "Text": "あなたの生まれを選んでください。",
           "Type": "dialogue"
         },
         {
           "Options": [
             {
-              "Text": "フラグを true にする",
-              "Jump": "SetFlagTrue"
+              "Text": "孤児",
+              "Jump": "SetBirthOrphan"
             },
             {
-              "Text": "フラグを false のまま進む",
-              "Jump": "GoNext"
+              "Text": "農民",
+              "Jump": "SetBirthFarmer"
+            },
+            {
+              "Text": "貴族",
+              "Jump": "SetBirthNoble"
             }
           ],
           "Type": "choice"
@@ -300,98 +34,72 @@
       ]
     },
     {
-      "Label": "SetFlagTrue",
+      "Label": "SetBirthOrphan",
       "Nodes": [
         {
           "Name": "/set",
           "Args": [
-            "flag",
-            true
+            "birth",
+            "orphan"
           ],
           "Type": "command"
         },
         {
-          "Speaker": "@player.name",
-          "Text": "フラグを true に変更した。",
-          "Type": "dialogue"
-        },
-        {
           "Name": "/jump",
           "Args": [
-            "NextScene"
+            "AfterBirth"
           ],
           "Type": "command"
         }
       ]
     },
     {
-      "Label": "GoNext",
+      "Label": "SetBirthFarmer",
       "Nodes": [
         {
-          "Speaker": "@player.name",
-          "Text": "フラグは変更しませんでした。",
-          "Type": "dialogue"
+          "Name": "/set",
+          "Args": [
+            "birth",
+            "farmer"
+          ],
+          "Type": "command"
         },
         {
           "Name": "/jump",
           "Args": [
-            "NextScene"
+            "AfterBirth"
           ],
           "Type": "command"
         }
       ]
     },
     {
-      "Label": "NextScene",
+      "Label": "SetBirthNoble",
       "Nodes": [
         {
-          "Speaker": "@player.name",
-          "Text": "次のシーンに到達しました。",
-          "Type": "dialogue"
-        },
-        {
-          "Speaker": "@player.name",
-          "Text": "現在の flag → @flag",
-          "Type": "dialogue"
-        },
-        {
-          "Condition": {
-            "OrGroups": [
-              {
-                "AndGroups": [
-                  {
-                    "Terms": [
-                      {
-                        "Left": "flag",
-                        "Operator": "==",
-                        "RightValue": true
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          "ThenBody": [
-            {
-              "Speaker": "@player.name",
-              "Text": "flag は true です。",
-              "Type": "dialogue"
-            }
+          "Name": "/set",
+          "Args": [
+            "birth",
+            "noble"
           ],
-          "ElseBody": [
-            {
-              "Speaker": "@player.name",
-              "Text": "flag は false です。",
-              "Type": "dialogue"
-            }
-          ],
-          "Type": "ifNode"
-        },
-        {
-          "Name": "/end",
-          "Args": [],
           "Type": "command"
+        },
+        {
+          "Name": "/jump",
+          "Args": [
+            "AfterBirth"
+          ],
+          "Type": "command"
+        }
+      ]
+    },
+    {
+      "Label": "AfterBirth",
+      "Nodes": [
+        {
+          "Speaker": "女神様",
+          "Text": "@birth の生まれなのですね。",
+          "Type": "dialogue"
         }
       ]
     }

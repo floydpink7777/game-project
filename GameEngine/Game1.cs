@@ -1,4 +1,5 @@
 ﻿using FontStashSharp;
+using GameEngine.Dungeon;
 using GameEngine.Events;
 using GameEngine.Events.RuntimeNode;
 using GameEngine.GameData.DataStore;
@@ -7,13 +8,18 @@ using GameEngine.GameData.Player;
 using GameEngine.System.Core;
 using GameEngine.System.Evaluator;
 using GameEngine.System.Input;
+using GameEngine.System.Logic;
 using GameEngine.System.State;
 using GameEngine.UI;
+using GameEngine.UI.ADV;
 using GameEngine.Utils;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Newtonsoft.Json;
+using SharpDX.Direct2D1;
+using SharpDX.Direct3D9;
+using System;
 using System.IO;
 using static GameEngine.System.GameConfig;
 
@@ -22,9 +28,8 @@ namespace GameEngine
     public class Game1 : Game
     {
         private GraphicsDeviceManager _graphics;
-        private SpriteBatch _spriteBatch;
+        private Microsoft.Xna.Framework.Graphics.SpriteBatch _spriteBatch;
 
-        private EventRunner runner;
         private VariableStore vars;
 
         private InputManager _input;
@@ -32,10 +37,25 @@ namespace GameEngine
         private EventManager _events;
         private NodeExecutor _executor;
 
-        private GameState _gameState = GameState.Idle;
         private GameSession _gameSession;
 
         private GameWorld _gameWorld;
+
+        private GameLogic _logic;
+
+        private TitleScreenRenderer _titleScreen;
+
+        private ADVUIRenderer _advUI;
+
+        // ダンジョン用クラス
+        TileMap _map;
+        Adventurer _adventurer;
+        Texture2D _adventurerTex;
+        Camera2D _camera;
+
+        private DungeonManager _dngeonManager;
+
+        //private int currentAnimationFrame = 0;
 
         public Game1()
         {
@@ -79,128 +99,153 @@ namespace GameEngine
 
             var eventData = JsonConvert.DeserializeObject<EventData>(jsonText, settings);
 
-            runner = new EventRunner(eventData, vars);
+            var runner = new EventRunner(eventData, vars);
+
             _input = new InputManager();
             _events = new EventManager(runner);
             _executor = new NodeExecutor(vars, evaluator);
             MessageWindowRenderer.InitDebug(GraphicsDevice);
+
+            _logic = new GameLogic(_events);
+
+            _camera = new Camera2D();
 
             base.Initialize();
         }
 
         protected override void LoadContent()
         {
-            _spriteBatch = new SpriteBatch(GraphicsDevice);
+            _spriteBatch = new Microsoft.Xna.Framework.Graphics.SpriteBatch(GraphicsDevice);
             GameAssets.Load(Content, GraphicsDevice);
             _ui = new UIManager(_spriteBatch);
+            _titleScreen = new TitleScreenRenderer(_spriteBatch);
+
+            _advUI = new ADVUIRenderer(_ui, _events, _executor, _gameSession);
+
+            var tileset = Content.Load<Texture2D>("images/tileset");
+            _adventurerTex = Content.Load<Texture2D>("images/adventurer1");
+
+            //var tiles = MapLoader.LoadCsv("Content/Maps/map1.csv");
+            var tiles = new int[31, 31];
+            var data = new TileMapData(tiles);
+
+            // 壁タイルIDを登録
+            data.SolidTiles.Add(6);
+
+            _map = new TileMap(tileset, data, tileSize: 32);
+
+            var generator = new DungeonGenerator();
+            generator.Generate(_map);
+
+            _adventurer = new Adventurer();
+            //_adventurer.Position = new Vector2(_map.StartPos.X * 32, _map.StartPos.Y * 32);
+
+            _adventurer.Position = new Vector2(400, 240);
+
+            _dngeonManager = new DungeonManager(
+                _map, 
+                _adventurer, 
+                _adventurerTex, _graphics.PreferredBackBufferWidth, 
+                _graphics.PreferredBackBufferHeight
+            );
         }
 
         protected override void Update(GameTime gameTime)
         {
             _input.Update();
-            _ui.Update(gameTime);
+            _logic.Update();
 
-            switch (_gameState)
+            switch (_logic.Mode)
             {
-                case GameState.WaitingForNext:
-                    if (_input.Keyboard.Pressed(Keys.Enter))
+                case GameMode.Title:
+                    if (_titleScreen.Update(_logic, _input))
                     {
-                        // ① まだタイプ途中なら全文表示
-                        if (!_ui.IsPageComplete)
-                        {
-                            _ui.SkipToPageEnd();
-                            return;
-                        }
-
-                        // ② ページが終わっていて、次ページがあるならページ送り
-                        if (_ui.NextPage())
-                            return;
-
-                        // ③ 最終ページなら次のノードへ
-                        _gameState = GameState.Idle;
-                    }
-                    return;
-                case GameState.WaitingForChoice:
-
-                    // カーソル移動
-                    if (_input.Keyboard.Pressed(Keys.Up))
-                    {
-                        _ui.MoveCursor(-1);
-                    }
-
-                    if (_input.Keyboard.Pressed(Keys.Down))
-                    {
-                        _ui.MoveCursor(+1);
-                    }
-
-                    // Enter で決定
-                    if (_input.Keyboard.Pressed(Keys.Enter))
-                    {
-                        SelectChoice(_ui.CursorIndex);
-                    }
-
-                    return;
-
-                case GameState.Idle:
-                    if (_events.IsFinished)
-                    {
-                        Exit();
-                        return;
-                    }
-
-                    var node = _events.NextNode();
-                    if (node == null)
-                        return;
-
-                    // NodeExecutor に一元化
-                    _executor.ExecuteNode(node, _gameSession, runner);
-
-                    // UI 状態遷移だけ Game1 が担当
-                    switch (node)
-                    {
-                        case DialogueNode:
-                            _ui.SetDialogue(_gameSession.Speaker, _gameSession.Text, FontManager.GetFont(FontID.Main, 24));
-                            _gameState = GameState.WaitingForNext;
-                            break;
-                        case ChoiceNode choiceNode:
-                            _ui.SetChoices(_gameSession.Choices);
-                            _gameState = GameState.WaitingForChoice;
-                            break;
+                        //_advUI.Start("start");
                     }
                     break;
+
+                case GameMode.NewGame:
+                    //_newGameScreen.Update(_logic);
+                    break;
+
+                case GameMode.MainGame:
+                    //_mainGameScreen.Update(_logic);
+                    break;
+                case GameMode.Dungeon:
+
+                    _dngeonManager.Update(gameTime);
+
+                    //// ★ マウスドラッグでカメラ移動 ★
+                    //var mouse = Mouse.GetState();
+
+                    //if (mouse.RightButton == ButtonState.Pressed)
+                    //{
+                    //    if (!_isDragging)
+                    //    {
+                    //        _isDragging = true;
+                    //        _dragStartMouse = mouse.Position;
+                    //        _dragStartCamera = _camera.Position;
+                    //    }
+                    //    else
+                    //    {
+                    //        var delta = mouse.Position - _dragStartMouse;
+                    //        _camera.Position = _dragStartCamera - new Vector2(delta.X, delta.Y);
+                    //    }
+                    //}
+                    //else
+                    //{
+                    //    _isDragging = false;
+                    //}
+
+                    _camera.Follow(
+                        _adventurer.Position,
+                        _graphics.PreferredBackBufferWidth,
+                        _graphics.PreferredBackBufferHeight
+                    );
+
+                    break;
             }
+
+            _advUI.Update(gameTime, _input);
+
+            if (_advUI.IsFinished)
+            {
+                _logic.OnScenarioFinished(_advUI.ScenarioId);
+            }
+
+            base.Update(gameTime);
         }
 
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.Clear(Color.Black);
 
-            _spriteBatch.Begin();
 
-            switch (_gameState)
+
+            switch (_logic.Mode)
             {
-                case GameState.WaitingForChoice:
-                    _ui.DrawChoices(
-                        FontManager.GetFont(FontID.Main, 24)
-                    );
+                case GameMode.Title:
+                    _spriteBatch.Begin(transformMatrix: _camera.GetMatrix());
+                    _titleScreen.Draw(FontManager.GetFont(FontID.Main, 35));
+                    _spriteBatch.End();
                     break;
 
-                default:
-                    _ui.DrawDialogue(
-                        FontManager.GetFont(FontID.Main, 24)
-                    );
+                case GameMode.NewGame:
+                    //_newGameScreen.Draw(_fontLarge);
+                    break;
+
+                case GameMode.MainGame:
+                    //_mainGameScreen.Draw(_fontLarge);
+                    break;
+                case GameMode.Dungeon:
+                    _dngeonManager.Draw(_spriteBatch);
+
                     break;
             }
 
-            _spriteBatch.End();
+            _advUI.Draw(_spriteBatch);
 
             base.Draw(gameTime);
-        }
-
-        private void SelectChoice(int index)
-        {
-            _events.SelectChoice(_gameSession, index);
-            _gameState = GameState.Idle;
         }
     }
 }

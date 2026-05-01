@@ -186,6 +186,9 @@ namespace GameEngine.UI
         // -----------------------------
         public void DrawDialogue(SpriteFontBase font)
         {
+            if (_pages == null || _pages.Count == 0)
+                return;
+
             if (string.IsNullOrEmpty(Speaker))
             {
                 _narrationWindow.DrawWindow();

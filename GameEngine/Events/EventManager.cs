@@ -38,5 +38,10 @@ namespace GameEngine.Events
             session.ClearChoices();
             session.ClearDialogue();
         }
+
+        public void ExecuteNode(NodeBase node, GameSession session, NodeExecutor executor)
+        {
+            executor.ExecuteNode(node, session, _runner);
+        }
     }
 }

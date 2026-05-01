@@ -2,6 +2,9 @@ Source File,Dest File,Processor Type,Content Type,Source File Size,Dest File Siz
 "E:/NovelEngine/GameEngine/Content/Fonts/mp1mm16tir-page1.png","E:\NovelEngine\GameEngine\Content\bin\Windows\Content\Fonts/mp1mm16tir-page1.png","CopyItem","File",665645,665645,0.0042862
 "E:/NovelEngine/GameEngine/Content/Fonts/mp1mm16tir-page2.png","E:\NovelEngine\GameEngine\Content\bin\Windows\Content\Fonts/mp1mm16tir-page2.png","CopyItem","File",632955,632955,0.0033739
 "E:/NovelEngine/GameEngine/Content/Fonts/mp1mm16tir.fnt","E:\NovelEngine\GameEngine\Content\bin\Windows\Content\Fonts/mp1mm16tir.fnt","CopyItem","File",642060,642060,0.0029982
+"E:/NovelEngine/GameEngine/Content/images/adventurer.png","E:/NovelEngine/GameEngine/Content/bin/Windows/Content/images/adventurer.xnb","TextureProcessor","Texture2DContent",3210,1230085,0.4084942
+"E:/NovelEngine/GameEngine/Content/images/adventurer1.png","E:/NovelEngine/GameEngine/Content/bin/Windows/Content/images/adventurer1.xnb","TextureProcessor","Texture2DContent",4381,49237,0.3766912
 "E:/NovelEngine/GameEngine/Content/images/choice_frame.png","E:/NovelEngine/GameEngine/Content/bin/Windows/Content/images/choice_frame.xnb","TextureProcessor","Texture2DContent",15501,83909,0.3247515
 "E:/NovelEngine/GameEngine/Content/images/message_frame_no_name.png","E:/NovelEngine/GameEngine/Content/bin/Windows/Content/images/message_frame_no_name.xnb","TextureProcessor","Texture2DContent",54829,747877,0.355059
 "E:/NovelEngine/GameEngine/Content/images/message_frame.png","E:/NovelEngine/GameEngine/Content/bin/Windows/Content/images/message_frame.xnb","TextureProcessor","Texture2DContent",70178,877125,0.0292744
+"E:/NovelEngine/GameEngine/Content/images/tileset.png","E:/NovelEngine/GameEngine/Content/bin/Windows/Content/images/tileset.xnb","TextureProcessor","Texture2DContent",280592,786517,0.0260979
