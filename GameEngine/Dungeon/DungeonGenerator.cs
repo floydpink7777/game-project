@@ -63,81 +63,124 @@ public class DungeonGenerator
     {
         if (horizontal)
         {
-            int left = Math.Max(r1.X, r2.X);
-            int right = Math.Min(r1.X + r1.Width - 1, r2.X + r2.Width - 1);
+            // 通路の中心 x を部屋の中心から決定
+            int x1 = r1.X + r1.Width / 2;
+            int x2 = r2.X + r2.Width / 2;
+            int cx = (x1 + x2) / 2;
 
-            if (left > right)
+            // 安全クランプ
+            if (cx < 1) cx = 1;
+            if (cx >= map.Width - 2) cx = map.Width - 2;
+
+            // 分割線上の2マス
+            map.Tiles[cx, divline] = 0;
+            map.Tiles[cx + 1, divline] = 0;
+
+            // ★ 入口を必ず2マスに広げる（上側）
+            if (divline - 1 >= 0)
             {
-                left = r1.X + r1.Width / 2;
-                right = r2.X + r2.Width / 2;
-
-                if (left > right)
-                {
-                    int tmp = left;
-                    left = right;
-                    right = tmp;
-                }
+                map.Tiles[cx, divline - 1] = 0;
+                map.Tiles[cx + 1, divline - 1] = 0;
             }
 
-            int x = rnd.Next(left, right + 1);
+            // 上方向へ掘る
+            for (int y = divline - 2; y >= 1; y--)
+            {
+                map.Tiles[cx, y] = 0;
+                map.Tiles[cx + 1, y] = 0;
 
-            map.Tiles[x, divline] = 0;
+                // ★ 次の2マスが両方部屋なら終了
+                if (map.Tiles[cx, y - 1] == 0 && map.Tiles[cx + 1, y - 1] == 0)
+                    break;
+            }
+
+            // ★ 入口を必ず2マスに広げる（下側）
             if (divline + 1 < map.Height)
-                map.Tiles[x, divline + 1] = 0;
-
-            for (int y = divline - 1; y >= 0; y--)
             {
-                if (map.Tiles[x, y] == 0) break;
-                map.Tiles[x, y] = 0;
-                if (x + 1 < map.Width) map.Tiles[x + 1, y] = 0;
+                map.Tiles[cx, divline + 1] = 0;
+                map.Tiles[cx + 1, divline + 1] = 0;
             }
 
-            for (int y = divline + 1; y < map.Height; y++)
+            // 下方向へ掘る
+            for (int y = divline + 2; y < map.Height - 1; y++)
             {
-                if (map.Tiles[x, y] == 0) break;
-                map.Tiles[x, y] = 0;
-                if (x + 1 < map.Width) map.Tiles[x + 1, y] = 0;
+                map.Tiles[cx, y] = 0;
+                map.Tiles[cx + 1, y] = 0;
+
+                if (map.Tiles[cx, y + 1] == 0 && map.Tiles[cx + 1, y + 1] == 0)
+                    break;
             }
         }
         else
         {
-            int top = Math.Max(r1.Y, r2.Y);
-            int bottom = Math.Min(r1.Y + r1.Height - 1, r2.Y + r2.Height - 1);
+            // 通路の中心 y を部屋の中心から決定
+            int y1 = r1.Y + r1.Height / 2;
+            int y2 = r2.Y + r2.Height / 2;
+            int cy = (y1 + y2) / 2;
 
-            if (top > bottom)
+            if (cy < 1) cy = 1;
+            if (cy >= map.Height - 2) cy = map.Height - 2;
+
+            // 分割線上の2マス
+            map.Tiles[divline, cy] = 0;
+            map.Tiles[divline, cy + 1] = 0;
+
+            // ★ 入口を必ず2マスに広げる（左側）
+            if (divline - 1 >= 0)
             {
-                top = r1.Y + r1.Height / 2;
-                bottom = r2.Y + r2.Height / 2;
-
-                if (top > bottom)
-                {
-                    int tmp = top;
-                    top = bottom;
-                    bottom = tmp;
-                }
+                map.Tiles[divline - 1, cy] = 0;
+                map.Tiles[divline - 1, cy + 1] = 0;
             }
 
-            int y = rnd.Next(top, bottom + 1);
+            // 左方向へ掘る
+            for (int x = divline - 2; x >= 1; x--)
+            {
+                map.Tiles[x, cy] = 0;
+                map.Tiles[x, cy + 1] = 0;
 
-            map.Tiles[divline, y] = 0;
+                if (map.Tiles[x - 1, cy] == 0 && map.Tiles[x - 1, cy + 1] == 0)
+                    break;
+            }
+
+            // ★ 入口を必ず2マスに広げる（右側）
             if (divline + 1 < map.Width)
-                map.Tiles[divline + 1, y] = 0;
-
-            for (int x = divline - 1; x >= 0; x--)
             {
-                if (map.Tiles[x, y] == 0) break;
-                map.Tiles[x, y] = 0;
-                if (y + 1 < map.Height) map.Tiles[x, y + 1] = 0;
+                map.Tiles[divline + 1, cy] = 0;
+                map.Tiles[divline + 1, cy + 1] = 0;
             }
 
-            for (int x = divline + 1; x < map.Width; x++)
+            // 右方向へ掘る
+            for (int x = divline + 2; x < map.Width - 1; x++)
             {
-                if (map.Tiles[x, y] == 0) break;
-                map.Tiles[x, y] = 0;
-                if (y + 1 < map.Height) map.Tiles[x, y + 1] = 0;
+                map.Tiles[x, cy] = 0;
+                map.Tiles[x, cy + 1] = 0;
+
+                if (map.Tiles[x + 1, cy] == 0 && map.Tiles[x + 1, cy + 1] == 0)
+                    break;
             }
         }
     }
+
+
+
+
+    private void ConnectRooms(TileMapData data, Point a, Point b)
+    {
+        // a → b の順で通路を掘る
+        if (Random.Shared.Next(2) == 0)
+        {
+            // 横 → 縦
+            CarveHorizontalCorridor(data, a.X, b.X, a.Y);
+            CarveVerticalCorridor(data, a.Y, b.Y, b.X);
+        }
+        else
+        {
+            // 縦 → 横
+            CarveVerticalCorridor(data, a.Y, b.Y, a.X);
+            CarveHorizontalCorridor(data, a.X, b.X, b.Y);
+        }
+    }
+
 
     private Rectangle? GenerateBSP(TileMapData map, Rectangle rect, bool horizontal)
     {
@@ -402,22 +445,26 @@ public class DungeonGenerator
         int x = a.X;
         int y = a.Y;
 
+        // 横方向
         int stepX = a.X < b.X ? 1 : -1;
         while (x != b.X)
         {
             map.Tiles[x, y] = 0;
-            if (y + 1 < map.Height) map.Tiles[x, y + 1] = 0;
+            map.Tiles[x, y + 1] = 0;   // ★ 2マス幅
             x += stepX;
         }
 
+        // 縦方向
         int stepY = a.Y < b.Y ? 1 : -1;
         while (y != b.Y)
         {
             map.Tiles[x, y] = 0;
-            if (x + 1 < map.Width) map.Tiles[x + 1, y] = 0;
+            map.Tiles[x + 1, y] = 0;   // ★ 2マス幅
             y += stepY;
         }
     }
+
+
 
     private Point GetRoomEdgePoint(TileMapData map, Rectangle room)
     {
@@ -439,4 +486,39 @@ public class DungeonGenerator
 
         return edges[rnd.Next(edges.Count)];
     }
+
+    private void CarveHorizontalCorridor(TileMapData data, int x1, int x2, int y)
+    {
+        if (x1 > x2)
+        {
+            int t = x1;
+            x1 = x2;
+            x2 = t;
+        }
+
+        for (int x = x1; x <= x2; x++)
+        {
+            // 通路幅 2 マス
+            data.Tiles[x, y] = 0;
+            data.Tiles[x, y + 1] = 0;   // ★ 追加：通路を2マスに
+        }
+    }
+
+    private void CarveVerticalCorridor(TileMapData data, int y1, int y2, int x)
+    {
+        if (y1 > y2)
+        {
+            int t = y1;
+            y1 = y2;
+            y2 = t;
+        }
+
+        for (int y = y1; y <= y2; y++)
+        {
+            // 通路幅 2 マス
+            data.Tiles[x, y] = 0;
+            data.Tiles[x + 1, y] = 0;   // ★ 追加：通路を2マスに
+        }
+    }
+
 }

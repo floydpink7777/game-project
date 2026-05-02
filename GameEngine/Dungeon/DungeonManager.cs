@@ -119,22 +119,29 @@ namespace GameEngine.Dungeon
 
             var fog = _map.TileMapData.Fog;
             var tiles = _map.TileMapData.Tiles;
+            var data = _map.TileMapData;
 
-            for (int y = 0; y < _map.TileMapData.Height; y++)
+            for (int y = 0; y < data.Height; y++)
             {
-                for (int x = 0; x < _map.TileMapData.Width; x++)
+                for (int x = 0; x < data.Width; x++)
                 {
-                    // ★ Fog の状態は「描画するかどうか」だけに使う
+                    // ★ 未探索は非表示
                     if (fog[x, y] == Visibility.Unseen)
-                        continue; // 未探索 → 非表示
+                        continue;
 
                     Color c;
 
-                    // ★ Fog の色は使わない（ミニマップは常に明るい）
-                    if (tiles[x, y] == 0)
-                        c = new Color(120, 180, 255); // 床（明るい青）
+                    if (tiles[x, y] == 6) // 壁
+                    {
+                        c = new Color(30, 30, 30); // 壁（濃いグレー）
+                    }
                     else
-                        c = new Color(50, 50, 50); // 壁（濃いグレー）
+                    {
+                        if (data.IsRoomTile(x, y))
+                            c = new Color(100, 230, 150); // 部屋（緑）
+                        else
+                            c = new Color(140, 200, 255); // 通路（水色）
+                    }
 
                     sb.Draw(
                         _playerTexture,
@@ -154,13 +161,10 @@ namespace GameEngine.Dungeon
                 Color.Red
             );
 
-            // ★ ゴールは視界に入ったら表示してよい
-            var goal = _map.TileMapData.GoalPos;
-
-            // ★ ゴールの Fog 状態を取得
+            // ★ ゴールは視界に入ったら表示
+            var goal = data.GoalPos;
             var goalFog = fog[goal.X, goal.Y];
 
-            // Visible または Seen のときだけ描画
             if (goalFog == Visibility.Visible || goalFog == Visibility.Seen)
             {
                 sb.Draw(
@@ -170,5 +174,6 @@ namespace GameEngine.Dungeon
                 );
             }
         }
+
     }
 }

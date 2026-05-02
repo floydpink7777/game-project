@@ -81,7 +81,6 @@ namespace GameEngine.Dungeon
             }
         }
 
-
         public bool IsSolid(int tileX, int tileY)
         {
             // マップ外は「壁扱いしない」
@@ -116,6 +115,16 @@ namespace GameEngine.Dungeon
         {
             Tiles = tiles;
         }
+
+        public bool IsRoomTile(int x, int y)
+        {
+            foreach (var room in Rooms)
+            {
+                if (room.Contains(x, y))
+                    return true;
+            }
+            return false;
+        }
     }
 
     public enum Visibility
@@ -124,5 +133,4 @@ namespace GameEngine.Dungeon
         Seen,     // 探索済み
         Visible   // 現在見えている
     }
-
 }
