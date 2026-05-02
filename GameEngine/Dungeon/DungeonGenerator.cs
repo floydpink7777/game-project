@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework;
 using SharpDX.Direct3D9;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 public class DungeonGenerator
 {
@@ -21,11 +22,29 @@ public class DungeonGenerator
         // ★ ここで「本当に孤立している部屋だけ」繋ぐ
         EnsureAllRoomsConnected(tileMapData);
 
-        var startRoom = tileMapData.Rooms[0];
+        // ★ ランダムな部屋をスタートにする
+        var startRoom = tileMapData.Rooms[rnd.Next(tileMapData.Rooms.Count)];
         tileMapData.StartPos = GetRandomFloorInsideRoom(tileMapData, startRoom);
-        tileMapData.GoalPos = FindFarthestPoint(tileMapData, tileMapData.StartPos);
 
+        // ★ スタートから遠い部屋トップ3を選ぶ
+        var farRooms = tileMapData.Rooms
+            .OrderByDescending(r => Distance(r.Center, tileMapData.StartPos))
+            .Take(3)
+            .ToList();
+
+        // ★ その中からランダムにゴール部屋を選ぶ
+        var goalRoom = farRooms[rnd.Next(farRooms.Count)];
+        tileMapData.GoalPos = GetRandomFloorInsideRoom(tileMapData, goalRoom);
+
+        // ゴールタイルを設定
         tileMapData.Tiles[tileMapData.GoalPos.X, tileMapData.GoalPos.Y] = 51;
+    }
+
+    private int Distance(Point a, Point b)
+    {
+        int dx = a.X - b.X;
+        int dy = a.Y - b.Y;
+        return dx * dx + dy * dy; // √は不要、比較なら二乗距離でOK
     }
 
     private void FillWalls(TileMapData tileMapData)
@@ -161,27 +180,6 @@ public class DungeonGenerator
         }
     }
 
-
-
-
-    private void ConnectRooms(TileMapData data, Point a, Point b)
-    {
-        // a → b の順で通路を掘る
-        if (Random.Shared.Next(2) == 0)
-        {
-            // 横 → 縦
-            CarveHorizontalCorridor(data, a.X, b.X, a.Y);
-            CarveVerticalCorridor(data, a.Y, b.Y, b.X);
-        }
-        else
-        {
-            // 縦 → 横
-            CarveVerticalCorridor(data, a.Y, b.Y, a.X);
-            CarveHorizontalCorridor(data, a.X, b.X, b.Y);
-        }
-    }
-
-
     private Rectangle? GenerateBSP(TileMapData map, Rectangle rect, bool horizontal)
     {
         if (rect.Width < map.MinRoomWidth * 2 || rect.Height < map.MinRoomHeight * 2)
@@ -267,55 +265,6 @@ public class DungeonGenerator
             room.X + room.Width / 2,
             room.Y + room.Height / 2
         );
-    }
-
-    private Point FindFarthestPoint(TileMapData tileMapData, Point start)
-    {
-        int w = tileMapData.Width;
-        int h = tileMapData.Height;
-
-        bool[,] visited = new bool[w, h];
-        Queue<(Point p, int dist)> q = new();
-
-        q.Enqueue((start, 0));
-        visited[start.X, start.Y] = true;
-
-        Point farthest = start;
-        int maxDist = 0;
-
-        int[] dx = { 1, -1, 0, 0 };
-        int[] dy = { 0, 0, 1, -1 };
-
-        while (q.Count > 0)
-        {
-            var (p, dist) = q.Dequeue();
-
-            if (dist > maxDist)
-            {
-                maxDist = dist;
-                farthest = p;
-            }
-
-            for (int i = 0; i < 4; i++)
-            {
-                int nx = p.X + dx[i];
-                int ny = p.Y + dy[i];
-
-                if (nx < 0 || ny < 0 || nx >= w || ny >= h)
-                    continue;
-
-                if (visited[nx, ny])
-                    continue;
-
-                if (tileMapData.Tiles[nx, ny] != 0)
-                    continue;
-
-                visited[nx, ny] = true;
-                q.Enqueue((new Point(nx, ny), dist + 1));
-            }
-        }
-
-        return farthest;
     }
 
     private Point GetRandomFloorInsideRoom(TileMapData map, Rectangle room)
@@ -464,8 +413,6 @@ public class DungeonGenerator
         }
     }
 
-
-
     private Point GetRoomEdgePoint(TileMapData map, Rectangle room)
     {
         List<Point> edges = new();
@@ -486,39 +433,4 @@ public class DungeonGenerator
 
         return edges[rnd.Next(edges.Count)];
     }
-
-    private void CarveHorizontalCorridor(TileMapData data, int x1, int x2, int y)
-    {
-        if (x1 > x2)
-        {
-            int t = x1;
-            x1 = x2;
-            x2 = t;
-        }
-
-        for (int x = x1; x <= x2; x++)
-        {
-            // 通路幅 2 マス
-            data.Tiles[x, y] = 0;
-            data.Tiles[x, y + 1] = 0;   // ★ 追加：通路を2マスに
-        }
-    }
-
-    private void CarveVerticalCorridor(TileMapData data, int y1, int y2, int x)
-    {
-        if (y1 > y2)
-        {
-            int t = y1;
-            y1 = y2;
-            y2 = t;
-        }
-
-        for (int y = y1; y <= y2; y++)
-        {
-            // 通路幅 2 マス
-            data.Tiles[x, y] = 0;
-            data.Tiles[x + 1, y] = 0;   // ★ 追加：通路を2マスに
-        }
-    }
-
 }
