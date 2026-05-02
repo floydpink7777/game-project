@@ -23,6 +23,17 @@ namespace GameEngine.Dungeon
         {
             Position = target - new Vector2(screenWidth / (2f * Zoom), screenHeight / (2f * Zoom));
         }
+
+        public Rectangle GetViewRectangle(int screenWidth, int screenHeight)
+        {
+            return new Rectangle(
+                (int)Position.X,
+                (int)Position.Y,
+                screenWidth,
+                screenHeight
+            );
+        }
+
     }
 
 }

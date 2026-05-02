@@ -57,8 +57,6 @@ namespace GameEngine
 
         int mapSize = 31;
 
-        //private int currentAnimationFrame = 0;
-
         public Game1()
         {
             _graphics = new GraphicsDeviceManager(this);
@@ -141,8 +139,6 @@ namespace GameEngine
 
             _adventurer = new Adventurer();
             _adventurer.Position = new Vector2(_map.TileMapData.StartPos.X * 32, _map.TileMapData.StartPos.Y * 32);
-
-            //_adventurer.Position = new Vector2(400, 240);
 
             _dngeonManager = new DungeonManager(
                 _map, 

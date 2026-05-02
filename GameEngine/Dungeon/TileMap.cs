@@ -34,18 +34,25 @@ namespace GameEngine.Dungeon
             return new Rectangle(sx, sy, TileSize, TileSize);
         }
 
-        public void Draw(SpriteBatch spriteBatch)
+        public void Draw(SpriteBatch spriteBatch, Rectangle cameraView)
         {
-            int drawSize = TileSize; //* 2; // 32 → 64 に見せる
+            int drawSize = TileSize;
 
-            for (int y = 0; y < TileMapData.Height; y++)
+            int startX = Math.Max(cameraView.Left / drawSize, 0);
+            int startY = Math.Max(cameraView.Top / drawSize, 0);
+            int endX = Math.Min(cameraView.Right / drawSize + 1, TileMapData.Width);
+            int endY = Math.Min(cameraView.Bottom / drawSize + 1, TileMapData.Height);
+
+            for (int y = startY; y < endY; y++)
             {
-                for (int x = 0; x < TileMapData.Width; x++)
+                for (int x = startX; x < endX; x++)
                 {
                     int id = TileMapData.Tiles[x, y];
                     if (id < 0) continue;
 
                     var src = GetSourceRect(id);
+
+                    // ★ cameraView を引かない（行列がやってくれる）
                     var dst = new Rectangle(
                         x * drawSize,
                         y * drawSize,
@@ -57,6 +64,8 @@ namespace GameEngine.Dungeon
                 }
             }
         }
+
+
 
         public bool IsSolid(int tileX, int tileY)
         {

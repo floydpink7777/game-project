@@ -59,7 +59,8 @@ namespace GameEngine.Dungeon
         {
             sb.Begin(transformMatrix: _camera.GetMatrix());
 
-            _map.Draw(sb);
+            var cameraView = _camera.GetViewRectangle(_screenWidth, _screenHeight);
+            _map.Draw(sb, cameraView);
 
             int fw = 32;
             int fh = 32;
