@@ -53,6 +53,8 @@ namespace GameEngine.Dungeon
             {
                 ReachedGoal = true;
             }
+
+            UpdateFog();
         }
 
         public void Draw(SpriteBatch sb)
@@ -67,10 +69,106 @@ namespace GameEngine.Dungeon
             int row = _adventurer.Direction;
 
             var src = new Rectangle(_frame * fw, row * fh, fw, fh);
-
             sb.Draw(_playerTexture, _adventurer.Position, src, Color.White);
 
             sb.End();
+
+            // ★ ミニマップはカメラ行列なしで描画
+            sb.Begin();
+            DrawMiniMap(sb);
+            sb.End();
+        }
+
+        private void UpdateFog()
+        {
+            int radius = 7; // 視界半径（調整可）
+
+            int px = (int)(_adventurer.Position.X / _map.TileSize);
+            int py = (int)(_adventurer.Position.Y / _map.TileSize);
+
+            var fog = _map.TileMapData.Fog;
+
+            // Visible → Seen に落とす
+            for (int y = 0; y < _map.TileMapData.Height; y++)
+                for (int x = 0; x < _map.TileMapData.Width; x++)
+                    if (fog[x, y] == Visibility.Visible)
+                        fog[x, y] = Visibility.Seen;
+
+            // 現在視界を Visible に
+            for (int dy = -radius; dy <= radius; dy++)
+            {
+                for (int dx = -radius; dx <= radius; dx++)
+                {
+                    int tx = px + dx;
+                    int ty = py + dy;
+
+                    if (tx < 0 || ty < 0 || tx >= _map.TileMapData.Width || ty >= _map.TileMapData.Height)
+                        continue;
+
+                    if (dx * dx + dy * dy <= radius * radius)
+                        fog[tx, ty] = Visibility.Visible;
+                }
+            }
+        }
+
+        private void DrawMiniMap(SpriteBatch sb)
+        {
+            int miniTile = 3;
+            int offsetX = _screenWidth - (_map.TileMapData.Width * miniTile) - 20;
+            int offsetY = 20;
+
+            var fog = _map.TileMapData.Fog;
+            var tiles = _map.TileMapData.Tiles;
+
+            for (int y = 0; y < _map.TileMapData.Height; y++)
+            {
+                for (int x = 0; x < _map.TileMapData.Width; x++)
+                {
+                    // ★ Fog の状態は「描画するかどうか」だけに使う
+                    if (fog[x, y] == Visibility.Unseen)
+                        continue; // 未探索 → 非表示
+
+                    Color c;
+
+                    // ★ Fog の色は使わない（ミニマップは常に明るい）
+                    if (tiles[x, y] == 0)
+                        c = new Color(120, 180, 255); // 床（明るい青）
+                    else
+                        c = new Color(50, 50, 50); // 壁（濃いグレー）
+
+                    sb.Draw(
+                        _playerTexture,
+                        new Rectangle(offsetX + x * miniTile, offsetY + y * miniTile, miniTile, miniTile),
+                        c
+                    );
+                }
+            }
+
+            // ★ プレイヤー位置（赤）
+            int px = (int)(_adventurer.Position.X / _map.TileSize);
+            int py = (int)(_adventurer.Position.Y / _map.TileSize);
+
+            sb.Draw(
+                _playerTexture,
+                new Rectangle(offsetX + px * miniTile, offsetY + py * miniTile, miniTile, miniTile),
+                Color.Red
+            );
+
+            // ★ ゴールは視界に入ったら表示してよい
+            var goal = _map.TileMapData.GoalPos;
+
+            // ★ ゴールの Fog 状態を取得
+            var goalFog = fog[goal.X, goal.Y];
+
+            // Visible または Seen のときだけ描画
+            if (goalFog == Visibility.Visible || goalFog == Visibility.Seen)
+            {
+                sb.Draw(
+                    _playerTexture,
+                    new Rectangle(offsetX + goal.X * miniTile, offsetY + goal.Y * miniTile, miniTile, miniTile),
+                    Color.Yellow
+                );
+            }
         }
     }
 }

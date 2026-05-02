@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Microsoft.VisualBasic.Logging;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoGame.Extended.Tiled;
 using SharpDX.Direct3D9;
@@ -21,6 +22,12 @@ namespace GameEngine.Dungeon
             Tileset = tileset;
             TileMapData = data;
             TileSize = tileSize;
+            TileMapData.Fog = new Visibility[TileMapData.Width, TileMapData.Height];
+
+            // 初期状態はすべて未探索
+            for (int y = 0; y < TileMapData.Height; y++)
+                for (int x = 0; x < TileMapData.Width; x++)
+                    TileMapData.Fog[x, y] = Visibility.Unseen;
         }
 
         private Rectangle GetSourceRect(int tileId)
@@ -51,8 +58,6 @@ namespace GameEngine.Dungeon
                     if (id < 0) continue;
 
                     var src = GetSourceRect(id);
-
-                    // ★ cameraView を引かない（行列がやってくれる）
                     var dst = new Rectangle(
                         x * drawSize,
                         y * drawSize,
@@ -61,10 +66,20 @@ namespace GameEngine.Dungeon
                     );
 
                     spriteBatch.Draw(Tileset, dst, src, Color.White);
+
+                    // ★ Fog of War を重ねる
+                    var fog = TileMapData.Fog[x, y];
+                    if (fog == Visibility.Unseen)
+                    {
+                        spriteBatch.Draw(Tileset, dst, src, Color.Black);
+                    }
+                    else if (fog == Visibility.Seen)
+                    {
+                        spriteBatch.Draw(Tileset, dst, src, new Color(0, 0, 0, 180));
+                    }
                 }
             }
         }
-
 
 
         public bool IsSolid(int tileX, int tileY)
@@ -83,6 +98,8 @@ namespace GameEngine.Dungeon
     public class TileMapData
     {
         public int[,] Tiles;
+        public Visibility[,] Fog;
+
         public List<Rectangle> Rooms = new();
         public HashSet<int> SolidTiles = new();
 
@@ -100,4 +117,12 @@ namespace GameEngine.Dungeon
             Tiles = tiles;
         }
     }
+
+    public enum Visibility
+    {
+        Unseen,   // 未探索
+        Seen,     // 探索済み
+        Visible   // 現在見えている
+    }
+
 }
