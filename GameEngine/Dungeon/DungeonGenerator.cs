@@ -7,6 +7,8 @@ using System.Linq;
 
 public class DungeonGenerator
 {
+    public const int DefaultMapSize = 31;
+
     private Random rnd = new();
 
     public void Generate(TileMapData tileMapData)
@@ -40,6 +42,18 @@ public class DungeonGenerator
         tileMapData.Tiles[tileMapData.GoalPos.X, tileMapData.GoalPos.Y] = 51;
 
         PlaceEnemies(tileMapData);
+    }
+
+    public TileMapData CreateMap(int size = DefaultMapSize)
+    {
+        var tiles = new int[size, size];
+        var data = new TileMapData(tiles);
+
+        // チップID 6を壁とする
+        data.SolidTiles.Add(6);
+
+        Generate(data);
+        return data;
     }
 
     private int Distance(Point a, Point b)

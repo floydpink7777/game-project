@@ -23,6 +23,9 @@ namespace GameEngine.Dungeon
 
         private SlashEffect _slash;
 
+        public Camera2D Camera => _camera;
+
+
         public DungeonManager(TileMap map, Adventurer adv, Texture2D advTex, Texture2D enemyTex, int w, int h, SlashEffect slash)
         {
             _map = map;

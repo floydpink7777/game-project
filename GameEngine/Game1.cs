@@ -16,6 +16,7 @@ using GameEngine.Utils;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using MonoGame.Extended.Tiled;
 using Newtonsoft.Json;
 using SharpDX.Direct2D1;
 using SharpDX.Direct3D9;
@@ -50,17 +51,14 @@ namespace GameEngine
         private ADVUIRenderer _advUI;
 
         // ダンジョン用クラス
-        TileMap _map;
+        //TileMap _map;
         Adventurer _adventurer;
         Texture2D _adventurerTex;
         Texture2D _enemyTex;
-        Camera2D _camera;
-        private DungeonManager _dngeonManager;
-        int mapSize = 31;
+
+        private DungeonScene _dungeonScene;
 
         SlashEffect _slash;
-
-        private KeyboardState _prevKeyboard;
 
         public Game1()
         {
@@ -113,8 +111,6 @@ namespace GameEngine
 
             _logic = new GameLogic(_events);
 
-            _camera = new Camera2D();
-
             base.Initialize();
         }
 
@@ -135,32 +131,25 @@ namespace GameEngine
             Texture2D slashTex = Content.Load<Texture2D>("images/tktk_Sword_2");
             _slash = new SlashEffect(slashTex, 192, 192);
 
-            //var tiles = MapLoader.LoadCsv("Content/Maps/map1.csv");
-            var tiles = new int[mapSize, mapSize];
-            var data = new TileMapData(tiles);
-
-            // 壁タイルIDを登録
-            data.SolidTiles.Add(6);
-
-            _map = new TileMap(tileset, data, tileSize: 32);
-
             var generator = new DungeonGenerator();
-            generator.Generate(data);
+            var data = generator.CreateMap();
+            //var tiles = MapLoader.LoadCsv("Content/Maps/map1.csv");
+            var map = new TileMap(tileset, data, tileSize: 32);
 
             _adventurer = new Adventurer()
             {
-                Hp = 10
+                Hp = 10,
+                Position = new Vector2(map.TileMapData.StartPos.X * map.TileSize, map.TileMapData.StartPos.Y * map.TileSize)
             };
-            _adventurer.Position = new Vector2(_map.TileMapData.StartPos.X * 32, _map.TileMapData.StartPos.Y * 32);
 
-            _dngeonManager = new DungeonManager(
-                _map,
+            _dungeonScene = new DungeonScene(
+                map,
                 _adventurer,
                 _adventurerTex,
-                _enemyTex, // ★ 追加
+                _enemyTex,
+                _slash,
                 _graphics.PreferredBackBufferWidth,
-                _graphics.PreferredBackBufferHeight,
-                _slash
+                _graphics.PreferredBackBufferHeight
             );
         }
 
@@ -187,91 +176,21 @@ namespace GameEngine
                     break;
                 case GameMode.Dungeon:
 
-                    _dngeonManager.Update(gameTime);
+                    _dungeonScene.Update(gameTime);
 
-                    if (_dngeonManager.PlayerDead)
+                    if (_dungeonScene.PlayerDead)
                     {
                         _logic.GoToTitle();
                         return;
                     }
 
-                    if (_dngeonManager.ReachedGoal)
+                    if (_dungeonScene.ReachedGoal)
                     {
                         NextFloor();
                     }
 
-                    //// ★ マウスドラッグでカメラ移動 ★
-                    //var mouse = Mouse.GetState();
-
-                    //if (mouse.RightButton == ButtonState.Pressed)
-                    //{
-                    //    if (!_isDragging)
-                    //    {
-                    //        _isDragging = true;
-                    //        _dragStartMouse = mouse.Position;
-                    //        _dragStartCamera = _camera.Position;
-                    //    }
-                    //    else
-                    //    {
-                    //        var delta = mouse.Position - _dragStartMouse;
-                    //        _camera.Position = _dragStartCamera - new Vector2(delta.X, delta.Y);
-                    //    }
-                    //}
-                    //else
-                    //{
-                    //    _isDragging = false;
-                    //}
-
-                    _camera.Follow(
-                        _adventurer.Position,
-                        _graphics.PreferredBackBufferWidth,
-                        _graphics.PreferredBackBufferHeight
-                    );
-
-                    var kb = Keyboard.GetState();
-
-                    // ★ Space を押した瞬間だけ true
-                    bool pressedNow = kb.IsKeyDown(Keys.Space) && !_prevKeyboard.IsKeyDown(Keys.Space);
-
-                    if (pressedNow)
-                    {
-                        Vector2 center = _adventurer.Position + new Vector2(16, 16);
-
-                        float rot = 0f;
-                        Vector2 pos = center;
-
-                        switch (_adventurer.Direction)
-                        {
-                            case 3: // 上
-                                rot = 0f;
-                                pos = center + new Vector2(0, -32);
-                                break;
-
-                            case 2: // 右
-                                rot = MathF.PI / 2;
-                                pos = center + new Vector2(32, 0);
-                                break;
-
-                            case 1: // 左
-                                rot = -MathF.PI / 2;
-                                pos = center + new Vector2(-32, 0);
-                                break;
-
-                            case 0: // 下
-                                rot = MathF.PI;
-                                pos = center + new Vector2(0, 32);
-                                break;
-                        }
-
-                        _slash.Play(pos, rot);
-                    }
-
-                    // ★ 最後に更新
-                    _prevKeyboard = kb;
-
-                    _slash.Update(gameTime);
-
                     break;
+
             }
 
             _advUI.Update(gameTime, _input);
@@ -291,7 +210,7 @@ namespace GameEngine
             switch (_logic.Mode)
             {
                 case GameMode.Title:
-                    _spriteBatch.Begin(transformMatrix: _camera.GetMatrix());
+                    _spriteBatch.Begin();
                     _titleScreen.Draw(FontManager.GetFont(FontID.Main, 35));
                     _spriteBatch.End();
                     break;
@@ -304,17 +223,7 @@ namespace GameEngine
                     //_mainGameScreen.Draw(_fontLarge);
                     break;
                 case GameMode.Dungeon:
-                    _dngeonManager.Draw(_spriteBatch, gameTime);
-
-                    // 斬撃エフェクト（Additive + カメラ付き）
-                    _spriteBatch.Begin(
-                        SpriteSortMode.Deferred,
-                        BlendState.Additive,
-                        transformMatrix: _camera.GetMatrix()
-                    );
-                    _slash.Draw(_spriteBatch);
-                    _spriteBatch.End();
-
+                    _dungeonScene.Draw(_spriteBatch, gameTime);
                     break;
             }
 
@@ -326,25 +235,20 @@ namespace GameEngine
         private void NextFloor()
         {
             // 新しい階層を生成
-            var tiles = new int[mapSize, mapSize];
-            var data = new TileMapData(tiles);
-            data.SolidTiles.Add(6);
-
             var generator = new DungeonGenerator();
-            generator.Generate(data);
+            var data = generator.CreateMap();
+            var map = new TileMap(Content.Load<Texture2D>("images/tileset"), data, 32);
 
-            _map = new TileMap(Content.Load<Texture2D>("images/tileset"), data, 32);
+            _adventurer.Position = data.StartPos.ToVector2() * map.TileSize;
 
-            _adventurer.Position = data.StartPos.ToVector2() * 32;
-
-            _dngeonManager = new DungeonManager(
-                _map,
+            _dungeonScene = new DungeonScene(
+                map,
                 _adventurer,
                 _adventurerTex,
-                _enemyTex, // ★ 追加
+                _enemyTex,
+                _slash,
                 _graphics.PreferredBackBufferWidth,
-                _graphics.PreferredBackBufferHeight,
-                _slash
+                _graphics.PreferredBackBufferHeight
             );
         }
     }
