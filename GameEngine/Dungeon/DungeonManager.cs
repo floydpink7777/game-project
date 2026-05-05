@@ -1,5 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using System.Collections.Generic;
+using static GameEngine.System.GameConfig;
 
 namespace GameEngine.Dungeon
 {
@@ -13,20 +15,27 @@ namespace GameEngine.Dungeon
         private int _screenWidth;
         private int _screenHeight;
 
+        public bool PlayerDead { get; private set; } = false;
+
         public bool ReachedGoal { get; private set; } = false;
 
+        List<Enemy> _enemies;
 
-        public DungeonManager(TileMap map, Adventurer adventurer, Texture2D playerTexture,
-                              int screenWidth, int screenHeight)
+        private SlashEffect _slash;
+
+        public DungeonManager(TileMap map, Adventurer adv, Texture2D advTex, Texture2D enemyTex, int w, int h, SlashEffect slash)
         {
             _map = map;
-            _adventurer = adventurer;
-            _playerTexture = playerTexture;
+            _adventurer = adv;
+            _playerTexture = advTex;
+            _screenWidth = w;
+            _screenHeight = h;
+            _slash = slash;
+            _camera = new Camera2D();   // ★ これが必須
 
-            _screenWidth = screenWidth;
-            _screenHeight = screenHeight;
-
-            _camera = new Camera2D();
+            _enemies = new List<Enemy>();
+            foreach (var pos in map.TileMapData.Enemies)
+                _enemies.Add(new Enemy(pos, enemyTex));
         }
 
         public void Update(GameTime gameTime)
@@ -45,19 +54,92 @@ namespace GameEngine.Dungeon
             else
                 _frame = 1;
 
-            var tileX = (int)(_adventurer.Position.X / _map.TileSize);
-            var tileY = (int)(_adventurer.Position.Y / _map.TileSize);
+            // ★ ゴールとの当たり判定（矩形）
+            Rectangle playerRect = new Rectangle(
+                (int)_adventurer.Position.X,
+                (int)_adventurer.Position.Y,
+                32, 32
+            );
 
-            if (tileX == _map.TileMapData.GoalPos.X &&
-                tileY == _map.TileMapData.GoalPos.Y)
+            Rectangle goalRect = new Rectangle(
+                _map.TileMapData.GoalPos.X * _map.TileSize,
+                _map.TileMapData.GoalPos.Y * _map.TileSize,
+                _map.TileSize,
+                _map.TileSize
+            );
+
+            if (playerRect.Intersects(goalRect))
             {
                 ReachedGoal = true;
             }
 
             UpdateFog();
+
+            // 無敵時間の減少
+            if (_adventurer.InvincibleTime > 0)
+                _adventurer.InvincibleTime -= (float)gameTime.ElapsedGameTime.TotalSeconds;
+
+
+            foreach (var enemy in _enemies)
+            {
+                enemy.Update(gameTime, _adventurer.Position);
+
+                Rectangle enemyRect = new Rectangle(
+                    (int)enemy.Position.X,
+                    (int)enemy.Position.Y,
+                    32, 32
+                );
+
+                if (playerRect.Intersects(enemyRect))
+                {
+                    OnEnemyHit(enemy);
+                    break;
+                }
+            }
+
+
+            // ★ 斬撃が再生中なら当たり判定
+            if (_slash.IsPlaying)
+            {
+                Rectangle slashBox = _slash.Hitbox;
+
+                for (int i = _enemies.Count - 1; i >= 0; i--)
+                {
+                    var enemy = _enemies[i];
+
+                    Rectangle enemyRect = new Rectangle(
+                        enemy.TilePos.X * _map.TileSize,
+                        enemy.TilePos.Y * _map.TileSize,
+                        32, 32
+                    );
+
+                    if (slashBox.Intersects(enemyRect))
+                    {
+                        _enemies.RemoveAt(i);   // ★ 敵を消す
+                    }
+                }
+            }
         }
 
-        public void Draw(SpriteBatch sb)
+        private void OnEnemyHit(Enemy enemy)
+        {
+            if (_adventurer.InvincibleTime > 0)
+                return; // ★ 無敵中はダメージなし
+
+            _adventurer.Hp -= 1;
+            _adventurer.InvincibleTime = 0.5f; // ★ 0.5秒無敵
+
+            if (_adventurer.Hp <= 0)
+                OnPlayerDead();
+        }
+
+        private void OnPlayerDead()
+        {
+            // ★ Game1 に通知するためのフラグ
+            PlayerDead = true;
+        }
+
+        public void Draw(SpriteBatch sb, GameTime gameTime)
         {
             sb.Begin(transformMatrix: _camera.GetMatrix());
 
@@ -69,15 +151,42 @@ namespace GameEngine.Dungeon
             int row = _adventurer.Direction;
 
             var src = new Rectangle(_frame * fw, row * fh, fw, fh);
-            sb.Draw(_playerTexture, _adventurer.Position, src, Color.White);
+
+            // ★ 無敵中は点滅（透明度を変える）
+            Color color = Color.White;
+
+            if (_adventurer.InvincibleTime > 0)
+            {
+                // 点滅周期（0.1秒ごとにON/OFF）
+                float blink = (float)(gameTime.TotalGameTime.TotalSeconds * 10);
+
+                if (((int)blink % 2) == 0)
+                    color = Color.White * 0.3f; // 薄く表示
+                else
+                    color = Color.White; // 通常表示
+            }
+
+            // ★ プレイヤー描画はこれ1回だけ！
+            sb.Draw(_playerTexture, _adventurer.Position, src, color);
+
+            // ★ 敵描画
+            foreach (var e in _enemies)
+            {
+                int ex = e.TilePos.X;
+                int ey = e.TilePos.Y;
+
+                if (_map.TileMapData.Fog[ex, ey] == Visibility.Visible)
+                    e.Draw(sb, _map.TileSize);
+            }
 
             sb.End();
 
-            // ★ ミニマップはカメラ行列なしで描画
+            // ★ ミニマップ
             sb.Begin();
             DrawMiniMap(sb);
             sb.End();
         }
+
 
         private void UpdateFog()
         {

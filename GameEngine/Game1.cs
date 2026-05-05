@@ -19,8 +19,10 @@ using Microsoft.Xna.Framework.Input;
 using Newtonsoft.Json;
 using SharpDX.Direct2D1;
 using SharpDX.Direct3D9;
+using SharpDX.MediaFoundation;
 using System;
 using System.IO;
+using System.Security.Policy;
 using static GameEngine.System.GameConfig;
 
 namespace GameEngine
@@ -51,11 +53,14 @@ namespace GameEngine
         TileMap _map;
         Adventurer _adventurer;
         Texture2D _adventurerTex;
+        Texture2D _enemyTex;
         Camera2D _camera;
-
         private DungeonManager _dngeonManager;
-
         int mapSize = 31;
+
+        SlashEffect _slash;
+
+        private KeyboardState _prevKeyboard;
 
         public Game1()
         {
@@ -125,6 +130,11 @@ namespace GameEngine
             var tileset = Content.Load<Texture2D>("images/tileset");
             _adventurerTex = Content.Load<Texture2D>("images/adventurer1");
 
+            _enemyTex = Content.Load<Texture2D>("images/enemy");
+
+            Texture2D slashTex = Content.Load<Texture2D>("images/tktk_Sword_2");
+            _slash = new SlashEffect(slashTex, 192, 192);
+
             //var tiles = MapLoader.LoadCsv("Content/Maps/map1.csv");
             var tiles = new int[mapSize, mapSize];
             var data = new TileMapData(tiles);
@@ -137,14 +147,20 @@ namespace GameEngine
             var generator = new DungeonGenerator();
             generator.Generate(data);
 
-            _adventurer = new Adventurer();
+            _adventurer = new Adventurer()
+            {
+                Hp = 10
+            };
             _adventurer.Position = new Vector2(_map.TileMapData.StartPos.X * 32, _map.TileMapData.StartPos.Y * 32);
 
             _dngeonManager = new DungeonManager(
-                _map, 
-                _adventurer, 
-                _adventurerTex, _graphics.PreferredBackBufferWidth, 
-                _graphics.PreferredBackBufferHeight
+                _map,
+                _adventurer,
+                _adventurerTex,
+                _enemyTex, // ★ 追加
+                _graphics.PreferredBackBufferWidth,
+                _graphics.PreferredBackBufferHeight,
+                _slash
             );
         }
 
@@ -172,6 +188,12 @@ namespace GameEngine
                 case GameMode.Dungeon:
 
                     _dngeonManager.Update(gameTime);
+
+                    if (_dngeonManager.PlayerDead)
+                    {
+                        _logic.GoToTitle();
+                        return;
+                    }
 
                     if (_dngeonManager.ReachedGoal)
                     {
@@ -206,6 +228,49 @@ namespace GameEngine
                         _graphics.PreferredBackBufferHeight
                     );
 
+                    var kb = Keyboard.GetState();
+
+                    // ★ Space を押した瞬間だけ true
+                    bool pressedNow = kb.IsKeyDown(Keys.Space) && !_prevKeyboard.IsKeyDown(Keys.Space);
+
+                    if (pressedNow)
+                    {
+                        Vector2 center = _adventurer.Position + new Vector2(16, 16);
+
+                        float rot = 0f;
+                        Vector2 pos = center;
+
+                        switch (_adventurer.Direction)
+                        {
+                            case 3: // 上
+                                rot = 0f;
+                                pos = center + new Vector2(0, -32);
+                                break;
+
+                            case 2: // 右
+                                rot = MathF.PI / 2;
+                                pos = center + new Vector2(32, 0);
+                                break;
+
+                            case 1: // 左
+                                rot = -MathF.PI / 2;
+                                pos = center + new Vector2(-32, 0);
+                                break;
+
+                            case 0: // 下
+                                rot = MathF.PI;
+                                pos = center + new Vector2(0, 32);
+                                break;
+                        }
+
+                        _slash.Play(pos, rot);
+                    }
+
+                    // ★ 最後に更新
+                    _prevKeyboard = kb;
+
+                    _slash.Update(gameTime);
+
                     break;
             }
 
@@ -223,8 +288,6 @@ namespace GameEngine
         {
             GraphicsDevice.Clear(Color.Black);
 
-
-
             switch (_logic.Mode)
             {
                 case GameMode.Title:
@@ -241,7 +304,16 @@ namespace GameEngine
                     //_mainGameScreen.Draw(_fontLarge);
                     break;
                 case GameMode.Dungeon:
-                    _dngeonManager.Draw(_spriteBatch);
+                    _dngeonManager.Draw(_spriteBatch, gameTime);
+
+                    // 斬撃エフェクト（Additive + カメラ付き）
+                    _spriteBatch.Begin(
+                        SpriteSortMode.Deferred,
+                        BlendState.Additive,
+                        transformMatrix: _camera.GetMatrix()
+                    );
+                    _slash.Draw(_spriteBatch);
+                    _spriteBatch.End();
 
                     break;
             }
@@ -269,10 +341,11 @@ namespace GameEngine
                 _map,
                 _adventurer,
                 _adventurerTex,
+                _enemyTex, // ★ 追加
                 _graphics.PreferredBackBufferWidth,
-                _graphics.PreferredBackBufferHeight
+                _graphics.PreferredBackBufferHeight,
+                _slash
             );
         }
-
     }
 }

@@ -38,6 +38,8 @@ public class DungeonGenerator
 
         // ゴールタイルを設定
         tileMapData.Tiles[tileMapData.GoalPos.X, tileMapData.GoalPos.Y] = 51;
+
+        PlaceEnemies(tileMapData);
     }
 
     private int Distance(Point a, Point b)
@@ -391,6 +393,9 @@ public class DungeonGenerator
 
     private void CarveCorridor(TileMapData map, Point a, Point b)
     {
+        int w = map.Width;
+        int h = map.Height;
+
         int x = a.X;
         int y = a.Y;
 
@@ -398,8 +403,13 @@ public class DungeonGenerator
         int stepX = a.X < b.X ? 1 : -1;
         while (x != b.X)
         {
-            map.Tiles[x, y] = 0;
-            map.Tiles[x, y + 1] = 0;   // ★ 2マス幅
+            if (x >= 0 && x < w && y >= 0 && y < h)
+                map.Tiles[x, y] = 0;
+
+            // ★ 2マス幅（範囲チェック付き）
+            if (y + 1 < h)
+                map.Tiles[x, y + 1] = 0;
+
             x += stepX;
         }
 
@@ -407,11 +417,17 @@ public class DungeonGenerator
         int stepY = a.Y < b.Y ? 1 : -1;
         while (y != b.Y)
         {
-            map.Tiles[x, y] = 0;
-            map.Tiles[x + 1, y] = 0;   // ★ 2マス幅
+            if (x >= 0 && x < w && y >= 0 && y < h)
+                map.Tiles[x, y] = 0;
+
+            // ★ 2マス幅（範囲チェック付き）
+            if (x + 1 < w)
+                map.Tiles[x + 1, y] = 0;
+
             y += stepY;
         }
     }
+
 
     private Point GetRoomEdgePoint(TileMapData map, Rectangle room)
     {
@@ -433,4 +449,46 @@ public class DungeonGenerator
 
         return edges[rnd.Next(edges.Count)];
     }
+
+    private void PlaceEnemies(TileMapData map)
+    {
+        map.Enemies.Clear();
+
+        // スタートとゴールの部屋は避ける
+        Rectangle startRoom = FindRoomContaining(map, map.StartPos);
+        Rectangle goalRoom = FindRoomContaining(map, map.GoalPos);
+
+        foreach (var room in map.Rooms)
+        {
+            // スタート部屋とゴール部屋はスキップ
+            if (room == startRoom || room == goalRoom)
+                continue;
+
+            // 部屋の広さに応じて敵数を決める
+            int area = room.Width * room.Height;
+            int enemyCount = area / 20; // 例：20タイルにつき1体
+
+            for (int i = 0; i < enemyCount; i++)
+            {
+                var pos = GetRandomFloorInsideRoom(map, room);
+                map.Enemies.Add(pos);
+            }
+        }
+
+        // ★ ゴール部屋に強敵を1体置く（演出）
+        var bossPos = GetRandomFloorInsideRoom(map, goalRoom);
+        map.Enemies.Add(bossPos);
+    }
+
+    private Rectangle FindRoomContaining(TileMapData map, Point p)
+    {
+        foreach (var r in map.Rooms)
+        {
+            if (r.Contains(p))
+                return r;
+        }
+        return Rectangle.Empty;
+    }
+
+
 }

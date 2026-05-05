@@ -111,6 +111,8 @@ namespace GameEngine.Dungeon
         public int Width => Tiles.GetLength(0);
         public int Height => Tiles.GetLength(1);
 
+        public List<Point> Enemies = new();
+
         public TileMapData(int[,] tiles)
         {
             Tiles = tiles;

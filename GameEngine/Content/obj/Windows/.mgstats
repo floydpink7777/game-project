@@ -1,6 +1,8 @@
 Source File,Dest File,Processor Type,Content Type,Source File Size,Dest File Size,Build Seconds
 "E:/NovelEngine/GameEngine/Content/images/adventurer1.png","E:/NovelEngine/GameEngine/Content/bin/Windows/images/adventurer1.xnb","TextureProcessor","Texture2DContent",4381,49237,0.3704233
 "E:/NovelEngine/GameEngine/Content/images/choice_frame.png","E:/NovelEngine/GameEngine/Content/bin/Windows/images/choice_frame.xnb","TextureProcessor","Texture2DContent",15501,83909,0.0168447
+"E:/NovelEngine/GameEngine/Content/images/enemy.png","E:/NovelEngine/GameEngine/Content/bin/Windows/images/enemy.xnb","TextureProcessor","Texture2DContent",1758,49237,0.3992003
 "E:/NovelEngine/GameEngine/Content/images/message_frame_no_name.png","E:/NovelEngine/GameEngine/Content/bin/Windows/images/message_frame_no_name.xnb","TextureProcessor","Texture2DContent",54829,747877,0.0347495
 "E:/NovelEngine/GameEngine/Content/images/message_frame.png","E:/NovelEngine/GameEngine/Content/bin/Windows/images/message_frame.xnb","TextureProcessor","Texture2DContent",70178,877125,0.0343945
 "E:/NovelEngine/GameEngine/Content/images/tileset.png","E:/NovelEngine/GameEngine/Content/bin/Windows/images/tileset.xnb","TextureProcessor","Texture2DContent",280592,786517,0.0398584
+"E:/NovelEngine/GameEngine/Content/images/tktk_Sword_2.png","E:/NovelEngine/GameEngine/Content/bin/Windows/images/tktk_Sword_2.xnb","TextureProcessor","Texture2DContent",28696,737365,0.0347768

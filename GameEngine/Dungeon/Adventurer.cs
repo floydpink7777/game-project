@@ -19,6 +19,9 @@ namespace GameEngine.Dungeon
         public Rectangle Bounds =>
             new Rectangle((int)Position.X, (int)Position.Y, 28, 28);
 
+        public int Hp;
+        public float InvincibleTime = 0f;
+
         public void Update()
         {
             Velocity = Vector2.Zero;
