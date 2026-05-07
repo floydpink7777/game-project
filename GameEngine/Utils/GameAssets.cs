@@ -11,6 +11,14 @@ namespace GameEngine.Utils
 {
     public static class GameAssets
     {
+        public static Texture2D WhiteTex;
+
+        public static void Init(GraphicsDevice gd)
+        {
+            WhiteTex = new Texture2D(gd, 1, 1);
+            WhiteTex.SetData(new[] { Microsoft.Xna.Framework.Color.White });
+        }
+
         public static readonly Dictionary<TextureID, string> TexturePaths = new()
         {
             { TextureID.MessageFrame, "images/message_frame" },

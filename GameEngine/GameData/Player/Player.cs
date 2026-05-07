@@ -9,6 +9,7 @@ namespace GameEngine.GameData.Player
     public class Player
     {
         public int Hp { get; set; }
+        public int MaxHp { get; set; }
         public string Name { get; set; }
     }
 }

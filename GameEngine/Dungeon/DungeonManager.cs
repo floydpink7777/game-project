@@ -1,5 +1,8 @@
-﻿using Microsoft.Xna.Framework;
+﻿using GameEngine.System.Core;
+using GameEngine.Utils;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using MonoGame.Extended.Tiled;
 using System.Collections.Generic;
 using static GameEngine.System.GameConfig;
 
@@ -25,6 +28,9 @@ namespace GameEngine.Dungeon
 
         public Camera2D Camera => _camera;
 
+        public Adventurer Adventurer => _adventurer;
+
+        private List<DamagePopup> _popups = new();
 
         public DungeonManager(TileMap map, Adventurer adv, Texture2D advTex, Texture2D enemyTex, int w, int h, SlashEffect slash)
         {
@@ -34,11 +40,16 @@ namespace GameEngine.Dungeon
             _screenWidth = w;
             _screenHeight = h;
             _slash = slash;
-            _camera = new Camera2D();   // ★ これが必須
+            _camera = new Camera2D();
 
             _enemies = new List<Enemy>();
             foreach (var pos in map.TileMapData.Enemies)
                 _enemies.Add(new Enemy(pos, enemyTex));
+        }
+
+        public void ResetPlayerPosition(Vector2 pos)
+        {
+            _adventurer.SetPosition(pos);
         }
 
         public void Update(GameTime gameTime)
@@ -118,9 +129,19 @@ namespace GameEngine.Dungeon
 
                     if (slashBox.Intersects(enemyRect))
                     {
+                        // ★ 敵ダメージポップ生成
+                        Vector2 pos = enemy.Position + new Vector2(16, -10);
+                        _popups.Add(new DamagePopup(pos, 1, Color.White));
+
                         _enemies.RemoveAt(i);   // ★ 敵を消す
                     }
                 }
+            }
+
+            for (int i = _popups.Count - 1; i >= 0; i--)
+            {
+                if (_popups[i].Update(gameTime))
+                    _popups.RemoveAt(i);
             }
         }
 
@@ -131,6 +152,9 @@ namespace GameEngine.Dungeon
 
             _adventurer.Hp -= 1;
             _adventurer.InvincibleTime = 0.5f; // ★ 0.5秒無敵
+
+            var pos = Adventurer.Position + new Vector2(16, 0);
+            _popups.Add(new DamagePopup(pos, 1, Color.Red));
 
             if (_adventurer.Hp <= 0)
                 OnPlayerDead();
@@ -182,6 +206,11 @@ namespace GameEngine.Dungeon
                     e.Draw(sb, _map.TileSize);
             }
 
+            foreach (var p in _popups)
+            {
+                p.Draw(sb, FontManager.GetFont(FontID.Main, 20));
+            }
+
             sb.End();
 
             // ★ ミニマップ
@@ -189,7 +218,6 @@ namespace GameEngine.Dungeon
             DrawMiniMap(sb);
             sb.End();
         }
-
 
         private void UpdateFog()
         {
@@ -286,6 +314,5 @@ namespace GameEngine.Dungeon
                 );
             }
         }
-
     }
 }

@@ -19,8 +19,33 @@ namespace GameEngine.Dungeon
         public Rectangle Bounds =>
             new Rectangle((int)Position.X, (int)Position.Y, 28, 28);
 
-        public int Hp;
+        private int _hp;
+        public int Hp
+        {
+            get => _hp;
+            set
+            {
+                if (MaxHp <= 0)
+                {
+                    // 最大HPが初期化されていない場合を想定
+                    _hp = value;
+                }
+                else
+                {
+                    _hp = Math.Clamp(value, 0, MaxHp);
+                }
+            }
+        }
+        public float DisplayHp;
+
+
+        public int MaxHp;
         public float InvincibleTime = 0f;
+
+        public void SetPosition(Vector2 pos)
+        {
+            Position = pos;
+        }
 
         public void Update()
         {

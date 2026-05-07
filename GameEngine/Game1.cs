@@ -51,8 +51,6 @@ namespace GameEngine
         private ADVUIRenderer _advUI;
 
         // ダンジョン用クラス
-        //TileMap _map;
-        Adventurer _adventurer;
         Texture2D _adventurerTex;
         Texture2D _enemyTex;
 
@@ -80,7 +78,7 @@ namespace GameEngine
             DataManager.Load();
             var a = PlayerInitValStore.Items["Orphan"];
 
-            var player = new Player { Name = a.Name, Hp = 1000 };
+            var player = new Player { Name = a.Name, Hp = 10, MaxHp = 10};
             _gameWorld.Player = player;
 
             // NPC を登録
@@ -111,6 +109,10 @@ namespace GameEngine
 
             _logic = new GameLogic(_events);
 
+            _logic.GoToTitle();
+
+            GameAssets.Init(_graphics.GraphicsDevice);
+
             base.Initialize();
         }
 
@@ -131,22 +133,11 @@ namespace GameEngine
             Texture2D slashTex = Content.Load<Texture2D>("images/tktk_Sword_2");
             _slash = new SlashEffect(slashTex, 192, 192);
 
-            var generator = new DungeonGenerator();
-            var data = generator.CreateMap();
-            //var tiles = MapLoader.LoadCsv("Content/Maps/map1.csv");
-            var map = new TileMap(tileset, data, tileSize: 32);
-
-            _adventurer = new Adventurer()
-            {
-                Hp = 10,
-                Position = new Vector2(map.TileMapData.StartPos.X * map.TileSize, map.TileMapData.StartPos.Y * map.TileSize)
-            };
-
             _dungeonScene = new DungeonScene(
-                map,
-                _adventurer,
+                _gameWorld,
                 _adventurerTex,
                 _enemyTex,
+                tileset,
                 _slash,
                 _graphics.PreferredBackBufferWidth,
                 _graphics.PreferredBackBufferHeight
@@ -163,6 +154,8 @@ namespace GameEngine
                 case GameMode.Title:
                     if (_titleScreen.Update(_logic, _input))
                     {
+                        _dungeonScene.StartNewDungeon();
+
                         //_advUI.Start("start");
                     }
                     break;
@@ -180,13 +173,14 @@ namespace GameEngine
 
                     if (_dungeonScene.PlayerDead)
                     {
+                        _dungeonScene.StartNewDungeon();
                         _logic.GoToTitle();
                         return;
                     }
 
                     if (_dungeonScene.ReachedGoal)
                     {
-                        NextFloor();
+                        _dungeonScene.NextFloor();
                     }
 
                     break;
@@ -199,8 +193,6 @@ namespace GameEngine
             {
                 _logic.OnScenarioFinished(_advUI.ScenarioId);
             }
-
-            base.Update(gameTime);
         }
 
         protected override void Draw(GameTime gameTime)
@@ -230,26 +222,6 @@ namespace GameEngine
             _advUI.Draw(_spriteBatch);
 
             base.Draw(gameTime);
-        }
-
-        private void NextFloor()
-        {
-            // 新しい階層を生成
-            var generator = new DungeonGenerator();
-            var data = generator.CreateMap();
-            var map = new TileMap(Content.Load<Texture2D>("images/tileset"), data, 32);
-
-            _adventurer.Position = data.StartPos.ToVector2() * map.TileSize;
-
-            _dungeonScene = new DungeonScene(
-                map,
-                _adventurer,
-                _adventurerTex,
-                _enemyTex,
-                _slash,
-                _graphics.PreferredBackBufferWidth,
-                _graphics.PreferredBackBufferHeight
-            );
         }
     }
 }

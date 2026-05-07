@@ -34,6 +34,11 @@ namespace GameEngine.System.Logic
             Mode = GameMode.MainGame;
         }
 
+        public void GoToDungeon()
+        {
+            Mode = GameMode.Dungeon;
+        }
+
         public void OnScenarioFinished(string scenarioId)
         {
             switch (scenarioId)
