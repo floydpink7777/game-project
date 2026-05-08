@@ -83,7 +83,9 @@ namespace GameEngine.Dungeon
                 player = new Adventurer()
                 {
                     MaxHp = _world.Player.MaxHp,
-                    Hp = _world.Player.Hp
+                    Hp = _world.Player.Hp,
+                    Attack = 100,
+                    Defense = 100,
                 };
             }
             else

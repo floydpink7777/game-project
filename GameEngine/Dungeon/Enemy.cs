@@ -16,6 +16,9 @@ namespace GameEngine.Dungeon
         public Vector2 Position;   // ★ 追加：実際の座標
         public float Speed = 40f;  // ★ 追加：移動速度(px/秒)
 
+        public int Attack;
+        public int Defense;
+
         public Enemy(Point tilePos, Texture2D tex)
         {
             TilePos = tilePos;

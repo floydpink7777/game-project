@@ -44,7 +44,14 @@ namespace GameEngine.Dungeon
 
             _enemies = new List<Enemy>();
             foreach (var pos in map.TileMapData.Enemies)
-                _enemies.Add(new Enemy(pos, enemyTex));
+            {
+
+                var e = new Enemy(pos, enemyTex);
+                e.Attack = 105;
+                e.Defense = 90;
+
+                _enemies.Add(e);
+            }
         }
 
         public void ResetPlayerPosition(Vector2 pos)
@@ -104,6 +111,7 @@ namespace GameEngine.Dungeon
                     32, 32
                 );
 
+                // 敵に接触時のプレイヤーへのダメージ
                 if (playerRect.Intersects(enemyRect))
                 {
                     OnEnemyHit(enemy);
@@ -129,9 +137,11 @@ namespace GameEngine.Dungeon
 
                     if (slashBox.Intersects(enemyRect))
                     {
+                        int dmg = DamageCalculator.CalculateDamage(_adventurer, enemy);
+
                         // ★ 敵ダメージポップ生成
                         Vector2 pos = enemy.Position + new Vector2(16, -10);
-                        _popups.Add(new DamagePopup(pos, 1, Color.White));
+                        _popups.Add(new DamagePopup(pos, dmg, Color.White));
 
                         _enemies.RemoveAt(i);   // ★ 敵を消す
                     }
@@ -150,11 +160,13 @@ namespace GameEngine.Dungeon
             if (_adventurer.InvincibleTime > 0)
                 return; // ★ 無敵中はダメージなし
 
-            _adventurer.Hp -= 1;
+            int dmg = DamageCalculator.CalculateDamage(enemy, _adventurer);
+
+            _adventurer.Hp -= dmg;
             _adventurer.InvincibleTime = 0.5f; // ★ 0.5秒無敵
 
             var pos = Adventurer.Position + new Vector2(16, 0);
-            _popups.Add(new DamagePopup(pos, 1, Color.Red));
+            _popups.Add(new DamagePopup(pos, dmg, Color.Red));
 
             if (_adventurer.Hp <= 0)
                 OnPlayerDead();

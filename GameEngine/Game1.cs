@@ -78,7 +78,7 @@ namespace GameEngine
             DataManager.Load();
             var a = PlayerInitValStore.Items["Orphan"];
 
-            var player = new Player { Name = a.Name, Hp = 10, MaxHp = 10};
+            var player = new Player { Name = a.Name, Hp = 100, MaxHp = 100};
             _gameWorld.Player = player;
 
             // NPC を登録

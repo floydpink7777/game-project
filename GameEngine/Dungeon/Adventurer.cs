@@ -42,6 +42,9 @@ namespace GameEngine.Dungeon
         public int MaxHp;
         public float InvincibleTime = 0f;
 
+        public int Attack;
+        public int Defense;
+
         public void SetPosition(Vector2 pos)
         {
             Position = pos;
