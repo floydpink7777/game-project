@@ -18,7 +18,7 @@ namespace GameEngine.UI
         public ChoiceWindowRenderer(SpriteBatch spriteBatch)
         {
             _spriteBatch = spriteBatch;
-            _windowTexture = TextureManager.GetTexture(TextureID.ChoiceWindow);
+            _windowTexture = TextureManager.Get(TextureID.ChoiceWindow);
         }
 
         public void Draw(Rectangle rect)

@@ -111,15 +111,16 @@ namespace GameEngine
 
             _logic.GoToTitle();
 
-            GameAssets.Init(_graphics.GraphicsDevice);
-
             base.Initialize();
         }
 
         protected override void LoadContent()
         {
             _spriteBatch = new Microsoft.Xna.Framework.Graphics.SpriteBatch(GraphicsDevice);
-            GameAssets.Load(Content, GraphicsDevice);
+
+            TextureManager.Load(Content, GraphicsDevice);
+            FontManager.Load(Content, GraphicsDevice);
+
             _ui = new UIManager(_spriteBatch);
             _titleScreen = new TitleScreenRenderer(_spriteBatch);
 

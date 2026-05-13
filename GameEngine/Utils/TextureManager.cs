@@ -7,56 +7,52 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static GameEngine.System.GameConfig;
 
 namespace GameEngine.Utils
 {
     public static class TextureManager
     {
         private static ContentManager _content;
+        private static readonly Dictionary<object, Texture2D> _cache = new();
 
-        private static readonly Dictionary<GameConfig.TextureID, Texture2D> _cache = new();
-
-        public static void Load(ContentManager content, GraphicsDevice graphicsDevice)
+        public static void Load(ContentManager content, GraphicsDevice gd)
         {
             _content = content;
 
-            Preload(
-                GameConfig.TextureID.MessageFrame,
-                GameConfig.TextureID.MessageFrameNoName,
-                GameConfig.TextureID.ChoiceWindow
-            );
-
-            // ★ WhitePixel を生成してキャッシュに登録
-            Texture2D white = new Texture2D(graphicsDevice, 1, 1);
+            // WhitePixel
+            Texture2D white = new Texture2D(gd, 1, 1);
             white.SetData(new[] { Color.White });
-            _cache[GameConfig.TextureID.WhitePixel] = white;
-        }
+            _cache[TextureID.WhitePixel] = white;
 
-        public static void Preload(GameConfig.TextureID id)
-        {
-            // 既にロード済みなら処理終了
-            if (_cache.ContainsKey(id)) return;
+            // ★ ここで TextureID を全部 Preload する
+            foreach (var id in GameAssets.TexturePaths.Keys)
+                Preload(id);
 
-            var path = GameAssets.GetTexturePath(id);
-            var tex = _content.Load<Texture2D>(path);
-            _cache[id] = tex;
-        }
-
-        public static void Preload(params GameConfig.TextureID[] ids)
-        {
-            foreach (var id in ids)
+            // ★ ItemID も必要なら Preload
+            foreach (var id in GameAssets.ItemTexturePaths.Keys)
                 Preload(id);
         }
 
-        public static Texture2D GetTexture(GameConfig.TextureID id)
+        public static void Preload<T>(T id) where T : Enum
         {
-            if (_content == null)
-                throw new InvalidOperationException("TextureManager.Load() が呼ばれていません。");
+            if (_cache.ContainsKey(id)) return;
 
-            if (_cache.TryGetValue(id, out var tex))
-                return tex;
+            string path = id switch
+            {
+                TextureID tex => tex.Path(),
+                ItemID item => item.Path(),
+                _ => throw new ArgumentException("Unsupported asset type")
+            };
 
-            throw new KeyNotFoundException($"TextureID '{id}' はまだ Preload されていません。");
+            _cache[id] = _content.Load<Texture2D>(path);
+        }
+
+        public static Texture2D Get<T>(T id) where T : Enum
+        {
+            return (Texture2D)_cache[id];
         }
     }
+
+
 }

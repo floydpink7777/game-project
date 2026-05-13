@@ -49,6 +49,18 @@
 /processorParam:TextureFormat=Color
 /build:images/choice_frame.png
 
+#begin images/cupmen_ramen_shoyu_01_open.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:images/cupmen_ramen_shoyu_01_open.png
+
 #begin images/enemy.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -60,6 +72,18 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /build:images/enemy.png
+
+#begin images/icecream_cone_triple_vanilla_strawberry_chocomint.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:images/icecream_cone_triple_vanilla_strawberry_chocomint.png
 
 #begin images/message_frame_no_name.png
 /importer:TextureImporter

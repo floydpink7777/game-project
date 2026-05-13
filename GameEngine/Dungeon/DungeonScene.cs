@@ -85,7 +85,7 @@ namespace GameEngine.Dungeon
                     MaxHp = _world.Player.MaxHp,
                     Hp = _world.Player.Hp,
                     Attack = 100,
-                    Defense = 100,
+                    Defense = 100
                 };
             }
             else
@@ -192,7 +192,7 @@ namespace GameEngine.Dungeon
 
             // 背景バー（黒）
             sb.Draw(
-                GameAssets.WhiteTex,
+                TextureManager.Get(TextureID.WhitePixel),
                 new Rectangle((int)barPos.X, (int)barPos.Y, barWidth, barHeight),
                 Color.Black
             );
@@ -205,20 +205,24 @@ namespace GameEngine.Dungeon
                 barColor = Color.Yellow;
 
             // 背景バー（黒）
-            sb.Draw(GameAssets.WhiteTex,
+            sb.Draw(
+                TextureManager.Get(TextureID.WhitePixel),
                 new Rectangle((int)barPos.X, (int)barPos.Y, barWidth, barHeight),
-                Color.Black);
+                Color.Black
+            );
 
             // 現在HPバー（割合 × 幅）
-            sb.Draw(GameAssets.WhiteTex,
+            sb.Draw(
+                TextureManager.Get(TextureID.WhitePixel),
                 new Rectangle((int)barPos.X, (int)barPos.Y, (int)(barWidth * ratio), barHeight),
-                barColor);
+                barColor
+            );
 
             // 枠線（白）
-            sb.Draw(GameAssets.WhiteTex, new Rectangle((int)barPos.X - 1, (int)barPos.Y - 1, barWidth + 2, 1), Color.White);
-            sb.Draw(GameAssets.WhiteTex, new Rectangle((int)barPos.X - 1, (int)barPos.Y + barHeight, barWidth + 2, 1), Color.White);
-            sb.Draw(GameAssets.WhiteTex, new Rectangle((int)barPos.X - 1, (int)barPos.Y - 1, 1, barHeight + 2), Color.White);
-            sb.Draw(GameAssets.WhiteTex, new Rectangle((int)barPos.X + barWidth, (int)barPos.Y - 1, 1, barHeight + 2), Color.White);
+            sb.Draw(TextureManager.Get(TextureID.WhitePixel), new Rectangle((int)barPos.X - 1, (int)barPos.Y - 1, barWidth + 2, 1), Color.White);
+            sb.Draw(TextureManager.Get(TextureID.WhitePixel), new Rectangle((int)barPos.X - 1, (int)barPos.Y + barHeight, barWidth + 2, 1), Color.White);
+            sb.Draw(TextureManager.Get(TextureID.WhitePixel), new Rectangle((int)barPos.X - 1, (int)barPos.Y - 1, 1, barHeight + 2), Color.White);
+            sb.Draw(TextureManager.Get(TextureID.WhitePixel), new Rectangle((int)barPos.X + barWidth, (int)barPos.Y - 1, 1, barHeight + 2), Color.White);
 
             sb.End();
         }

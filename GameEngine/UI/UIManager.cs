@@ -249,7 +249,7 @@ namespace GameEngine.UI
 
             // 背景暗転
             _spriteBatch.Draw(
-                TextureManager.GetTexture(TextureID.WhitePixel),
+                TextureManager.Get(TextureID.WhitePixel),
                 new Rectangle(0, 0, 800, 480),
                 Color.Black * 0.5f
             );

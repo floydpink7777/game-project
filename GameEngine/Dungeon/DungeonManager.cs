@@ -1,10 +1,14 @@
-﻿using GameEngine.System.Core;
+﻿using FontStashSharp;
+using GameEngine.System.Core;
 using GameEngine.Utils;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using MonoGame.Extended.Tiled;
+using System;
 using System.Collections.Generic;
 using static GameEngine.System.GameConfig;
+using static GameEngine.Utils.GameAssets;
 
 namespace GameEngine.Dungeon
 {
@@ -32,6 +36,25 @@ namespace GameEngine.Dungeon
 
         private List<DamagePopup> _popups = new();
 
+        private Texture2D _debugPixel;
+
+        private List<Item> _items = new();
+
+        private bool _inventoryOpen = false;
+
+        private bool _prevTab = false;
+
+        private ItemID? _hoverItem = null;
+        private Rectangle? _hoverSlotRect = null;
+
+        private ItemID? _dragItem = null;
+        private int _dragCount = 0;
+        private Rectangle? _dragOriginSlot = null;
+        private MouseState prevMs;
+
+        private int? _hoverSlotIndex = null;
+        private int? _dragOriginIndex = null;
+
         public DungeonManager(TileMap map, Adventurer adv, Texture2D advTex, Texture2D enemyTex, int w, int h, SlashEffect slash)
         {
             _map = map;
@@ -49,8 +72,87 @@ namespace GameEngine.Dungeon
                 var e = new Enemy(pos, enemyTex);
                 e.Attack = 105;
                 e.Defense = 90;
+                e.Type = EnemyID.Slime;
+
+                // ★ 敵の種類に応じてドロップテーブルを設定
+                if (e.Type == EnemyID.Slime)
+                {
+                    e.DropTable = new[]
+                    {
+                        (ItemID.Coin,   0.7),
+                        (ItemID.Potion,   0.3),
+                    };
+                }
 
                 _enemies.Add(e);
+            }
+
+            _debugPixel = new Texture2D(advTex.GraphicsDevice, 1, 1);
+            _debugPixel.SetData(new[] { Color.White });
+        }
+
+        private ItemID GetRandomDrop((ItemID id, double weight)[] table)
+        {
+            double r = Random.Shared.NextDouble();
+            double sum = 0;
+
+            foreach (var (id, weight) in table)
+            {
+                sum += weight;
+                if (r < sum)
+                    return id;
+            }
+
+            return table[^1].id; // 念のため
+        }
+
+
+        private void DrawCircle(SpriteBatch sb, Vector2 center, float radius, Color color, int segments = 32)
+        {
+            float increment = MathF.Tau / segments;
+            float theta = 0f;
+
+            Vector2 prev = center + new Vector2(MathF.Cos(0), MathF.Sin(0)) * radius;
+
+            for (int i = 1; i <= segments; i++)
+            {
+                theta += increment;
+                Vector2 next = center + new Vector2(MathF.Cos(theta), MathF.Sin(theta)) * radius;
+
+                DrawLine(sb, prev, next, color);
+                prev = next;
+            }
+        }
+
+        private void DrawLine(SpriteBatch sb, Vector2 a, Vector2 b, Color color)
+        {
+            Vector2 diff = b - a;
+            float length = diff.Length();
+            float angle = MathF.Atan2(diff.Y, diff.X);
+
+            sb.Draw(_debugPixel, a, null, color, angle, Vector2.Zero, new Vector2(length, 1f), SpriteEffects.None, 0f);
+        }
+
+        private void DrawCone(SpriteBatch sb, Vector2 center, Vector2 forward, float radius, float angleDeg, Color color)
+        {
+            int segments = 20;
+            float angle = MathHelper.ToRadians(angleDeg);
+            float half = angle / 2f;
+
+            // forward の角度
+            float baseAngle = MathF.Atan2(forward.Y, forward.X);
+
+            Vector2 prev = center;
+
+            for (int i = 0; i <= segments; i++)
+            {
+                float t = -half + (angle * i / segments);
+                float theta = baseAngle + t;
+
+                Vector2 dir = new Vector2(MathF.Cos(theta), MathF.Sin(theta));
+                Vector2 point = center + dir * radius;
+
+                DrawLine(sb, center, point, color);
             }
         }
 
@@ -61,11 +163,21 @@ namespace GameEngine.Dungeon
 
         public void Update(GameTime gameTime)
         {
+            float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
+
+            var ks = Keyboard.GetState();
+
+            if (ks.IsKeyDown(Keys.Tab) && !_prevTab)
+            {
+                _inventoryOpen = !_inventoryOpen;
+            }
+
+            _prevTab = ks.IsKeyDown(Keys.Tab);
+
             _adventurer.Update();
 
             CollisionResolver.Resolve(_adventurer, _map);
             CollisionResolver.ClampToMap(_adventurer, _map);
-
             _camera.Follow(_adventurer.Position, _screenWidth, _screenHeight);
 
             // アニメーション
@@ -100,10 +212,10 @@ namespace GameEngine.Dungeon
             if (_adventurer.InvincibleTime > 0)
                 _adventurer.InvincibleTime -= (float)gameTime.ElapsedGameTime.TotalSeconds;
 
-
             foreach (var enemy in _enemies)
             {
-                enemy.Update(gameTime, _adventurer.Position);
+                enemy.Update(gameTime, _adventurer.Position, _map);
+                enemy.ResolveEnemyCollision(_enemies);
 
                 Rectangle enemyRect = new Rectangle(
                     (int)enemy.Position.X,
@@ -115,10 +227,8 @@ namespace GameEngine.Dungeon
                 if (playerRect.Intersects(enemyRect))
                 {
                     OnEnemyHit(enemy);
-                    break;
                 }
             }
-
 
             // ★ 斬撃が再生中なら当たり判定
             if (_slash.IsPlaying)
@@ -144,14 +254,33 @@ namespace GameEngine.Dungeon
                         _popups.Add(new DamagePopup(pos, dmg, Color.White));
 
                         _enemies.RemoveAt(i);   // ★ 敵を消す
+
+                        // ★ アイテムドロップ（例：50%でコイン）
+                        if (Random.Shared.NextDouble() < 0.5)
+                        {
+                            ItemID drop = GetRandomDrop(enemy.DropTable);
+                            _items.Add(new Item(enemy.Position, drop));
+                        }
+
                     }
                 }
+
+                prevMs = Mouse.GetState();
             }
 
             for (int i = _popups.Count - 1; i >= 0; i--)
             {
                 if (_popups[i].Update(gameTime))
                     _popups.RemoveAt(i);
+            }
+
+            for (int i = _items.Count - 1; i >= 0; i--)
+            {
+                if (_adventurer.Bounds.Intersects(_items[i].Bounds))
+                {
+                    OnItemPickup(_items[i]);
+                    _items.RemoveAt(i);
+                }
             }
         }
 
@@ -170,6 +299,29 @@ namespace GameEngine.Dungeon
 
             if (_adventurer.Hp <= 0)
                 OnPlayerDead();
+        }
+
+        private void OnItemPickup(Item item)
+        {
+            // 既にあるスロットに追加
+            for (int i = 0; i < _adventurer.Inventory.Length; i++)
+            {
+                if (_adventurer.Inventory[i].id == item.Type)
+                {
+                    _adventurer.Inventory[i].count++;
+                    return;
+                }
+            }
+
+            // 空スロットに入れる
+            for (int i = 0; i < _adventurer.Inventory.Length; i++)
+            {
+                if (_adventurer.Inventory[i].id == null)
+                {
+                    _adventurer.Inventory[i] = (item.Type, 1);
+                    return;
+                }
+            }
         }
 
         private void OnPlayerDead()
@@ -208,14 +360,43 @@ namespace GameEngine.Dungeon
             // ★ プレイヤー描画はこれ1回だけ！
             sb.Draw(_playerTexture, _adventurer.Position, src, color);
 
-            // ★ 敵描画
             foreach (var e in _enemies)
             {
                 int ex = e.TilePos.X;
                 int ey = e.TilePos.Y;
 
-                if (_map.TileMapData.Fog[ex, ey] == Visibility.Visible)
+                var fog = _map.TileMapData.Fog;
+
+                if (ex < 0 || ey < 0 || ex >= fog.GetLength(0) || ey >= fog.GetLength(1))
+                    continue;
+
+                Vector2 forward;
+
+                if (e.State == EnemyState.Lost)
+                {
+                    forward = e.LastSeenDirection;   // ★ 追跡中の向きを維持
+                }
+                else if (e.Velocity.LengthSquared() > 0)
+                {
+                    forward = Vector2.Normalize(e.Velocity);
+                }
+                else
+                {
+                    forward = e.WanderDirection;
+                }
+
+                // ★ 前方視界（60°・半径200px）を描画
+                DrawCone(sb, e.Position + new Vector2(16, 16), forward, 150f, 60f, Color.Red * 0.3f);
+
+                if (fog[ex, ey] == Visibility.Visible)
                     e.Draw(sb, _map.TileSize);
+            }
+
+            foreach (var item in _items)
+            {
+                Texture2D tex = TextureManager.Get(item.Type);
+
+                sb.Draw(tex, new Rectangle((int)item.Position.X, (int)item.Position.Y, 16, 16), Color.White);
             }
 
             foreach (var p in _popups)
@@ -228,8 +409,289 @@ namespace GameEngine.Dungeon
             // ★ ミニマップ
             sb.Begin();
             DrawMiniMap(sb);
+            if (_inventoryOpen)
+            {
+                DrawInventoryWindow(sb);
+            }
+
             sb.End();
         }
+
+        private void DrawInventoryWindow(SpriteBatch sb)
+        {
+            var font = FontManager.GetFont(FontID.Main, 18);
+
+            MouseState ms = Mouse.GetState();
+            Point mousePos = new Point(ms.X, ms.Y);
+
+            _hoverItem = null;
+            _hoverSlotRect = null;
+            _hoverSlotIndex = null;
+
+            sb.Draw(_debugPixel, new Rectangle(50, 50, 350, 350), Color.Black * 0.7f);
+            sb.DrawString(font, "所持品", new Vector2(70, 60), Color.White);
+
+            int slotSize = 48;
+            int padding = 8;
+            int cols = 5;
+            int startX = 70;
+            int startY = 100;
+
+            var slots = _adventurer.Inventory; // ★ 固定 20 スロット
+
+            // ============================
+            // ① スロット描画（ホバー → 掴む → 描画）
+            // ============================
+            for (int index = 0; index < 20; index++)
+            {
+                int col = index % cols;
+                int row = index / cols;
+
+                int x = startX + col * (slotSize + padding);
+                int y = startY + row * (slotSize + padding);
+
+                Rectangle slotRect = new Rectangle(x, y, slotSize, slotSize);
+
+                // ホバー
+                if (slotRect.Contains(mousePos))
+                {
+                    _hoverSlotRect = slotRect;
+                    _hoverSlotIndex = index;
+
+                    if (slots[index].id != null)
+                        _hoverItem = slots[index].id;
+                }
+
+                // 掴む
+                if (ms.LeftButton == ButtonState.Pressed && prevMs.LeftButton == ButtonState.Released)
+                {
+                    if (slotRect.Contains(mousePos) && slots[index].id != null)
+                    {
+                        bool split = Keyboard.GetState().IsKeyDown(Keys.LeftShift) ||
+                                     Keyboard.GetState().IsKeyDown(Keys.RightShift);
+
+                        var (itemID, count) = slots[index];
+
+                        if (split && count > 1)
+                        {
+                            // ★ 半分だけ掴む
+                            int half = count / 2;
+                            _dragItem = itemID;
+                            _dragCount = half;
+                            _dragOriginIndex = index;
+
+                            // 元スロットには残りを残す
+                            slots[index] = (itemID, count - half);
+                        }
+                        else
+                        {
+                            // ★ 通常の掴む
+                            _dragItem = itemID;
+                            _dragCount = count;
+                            _dragOriginIndex = index;
+
+                            slots[index] = (null, 0);
+                        }
+                    }
+
+                }
+
+                // スロット枠
+                sb.Draw(_debugPixel, new Rectangle(x, y, slotSize, slotSize), Color.White * 0.2f);
+
+                // アイテム描画
+                if (slots[index].id != null)
+                {
+                    var (itemID, count) = slots[index];
+
+                    Texture2D tex = TextureManager.Get(itemID.Value);
+                    sb.Draw(tex, new Rectangle(x + 8, y + 8, 32, 32), Color.White);
+
+                    // ★ 個数表示（右下）
+                    string countText = $"x{count}";
+                    Vector2 size = font.MeasureString(countText);
+
+                    int textX = x + slotSize - (int)size.X - 4;
+                    int textY = y + slotSize - (int)size.Y - 2;
+
+                    // 背景（黒半透明）
+                    sb.Draw(_debugPixel,
+                        new Rectangle(textX - 2, textY - 2, (int)size.X + 4, (int)size.Y + 4),
+                        Color.Black * 0.6f);
+
+                    sb.DrawString(font, countText, new Vector2(textX, textY), Color.White);
+                }
+
+                // 右クリックで使用
+                if (ms.RightButton == ButtonState.Pressed &&
+                    prevMs.RightButton == ButtonState.Released &&
+                    slotRect.Contains(mousePos) &&
+                    slots[index].id != null)
+                {
+                    UseItem(index);
+                }
+
+
+            }
+
+            // ============================
+            // ② ドロップ処理（固定スロット方式 + swap対応）
+            // ============================
+            if (_dragItem.HasValue &&
+                ms.LeftButton == ButtonState.Released &&
+                prevMs.LeftButton == ButtonState.Pressed)
+            {
+                int dropIndex = _hoverSlotIndex ?? _dragOriginIndex.Value;
+
+                var target = slots[dropIndex];
+
+                // ★ ① 同じアイテムなら結合
+                if (target.id == _dragItem)
+                {
+                    slots[dropIndex] = (_dragItem.Value, target.count + _dragCount);
+                }
+                else
+                {
+                    // ★ ② 別アイテムなら swap
+                    if (target.id != null)
+                    {
+                        var temp = target;
+                        slots[dropIndex] = (_dragItem.Value, _dragCount);
+                        slots[_dragOriginIndex.Value] = temp;
+                    }
+                    else
+                    {
+                        // ★ ③ 空スロットなら普通に置く
+                        slots[dropIndex] = (_dragItem.Value, _dragCount);
+                    }
+                }
+
+                _dragItem = null;
+                _dragOriginIndex = null;
+
+
+                _dragItem = null;
+                _dragOriginIndex = null;
+            }
+
+
+            // ============================
+            // ③ ホバー枠
+            // ============================
+            if (_hoverSlotRect.HasValue)
+            {
+                var r = _hoverSlotRect.Value;
+                sb.Draw(_debugPixel, new Rectangle(r.X - 2, r.Y - 2, r.Width + 4, 2), Color.Yellow);
+                sb.Draw(_debugPixel, new Rectangle(r.X - 2, r.Y + r.Height, r.Width + 4, 2), Color.Yellow);
+                sb.Draw(_debugPixel, new Rectangle(r.X - 2, r.Y - 2, 2, r.Height + 4), Color.Yellow);
+                sb.Draw(_debugPixel, new Rectangle(r.X + r.Width, r.Y - 2, 2, r.Height + 4), Color.Yellow);
+            }
+
+            // ============================
+            // ④ ドラッグ中アイコン
+            // ============================
+            if (_dragItem.HasValue)
+            {
+                Texture2D tex = TextureManager.Get(_dragItem.Value);
+                sb.Draw(tex, new Rectangle(mousePos.X - 16, mousePos.Y - 16, 32, 32), Color.White);
+                sb.DrawString(font, $"x{_dragCount}", new Vector2(mousePos.X, mousePos.Y), Color.White);
+            }
+
+            // ============================
+            // ⑤ Tooltip
+            // ============================
+            if (_hoverItem.HasValue)
+                DrawItemTooltip(sb, _hoverItem.Value);
+
+            prevMs = ms;
+        }
+
+
+        private void DrawItemTooltip(SpriteBatch sb, ItemID id)
+        {
+            var font = FontManager.GetFont(FontID.Main, 18);
+
+            string name = ItemDB.Items[id].Name;
+            string desc = ItemDB.Items[id].Description;
+
+            MouseState ms = Mouse.GetState();
+            int x = ms.X + 20;
+            int y = ms.Y + 20;
+
+            // サイズ計算
+            Vector2 nameSize = font.MeasureString(name);
+            Vector2 descSize = font.MeasureString(desc);
+
+            int width = (int)Math.Max(nameSize.X, descSize.X) + 20;
+            int height = (int)(nameSize.Y + descSize.Y) + 20;
+
+            // ★ 画面外に出ないように調整
+            int screenW = _screenWidth;
+            int screenH = _screenHeight;
+
+            if (x + width > screenW)
+                x = screenW - width - 10;
+
+            if (y + height > screenH)
+                y = screenH - height - 10;
+
+            // 背景
+            sb.Draw(_debugPixel, new Rectangle(x, y, width, height), Color.Black * 0.8f);
+
+            // 枠線
+            sb.Draw(_debugPixel, new Rectangle(x, y, width, 1), Color.White);
+            sb.Draw(_debugPixel, new Rectangle(x, y + height - 1, width, 1), Color.White);
+            sb.Draw(_debugPixel, new Rectangle(x, y, 1, height), Color.White);
+            sb.Draw(_debugPixel, new Rectangle(x + width - 1, y, 1, height), Color.White);
+
+            // テキスト
+            sb.DrawString(font, name, new Vector2(x + 10, y + 5), Color.Yellow);
+            sb.DrawString(font, desc, new Vector2(x + 10, y + 5 + nameSize.Y), Color.White);
+        }
+
+        private void UseItem(int index)
+        {
+            var (id, count) = _adventurer.Inventory[index];
+            var info = ItemDB.Items[id.Value];
+
+            switch (info.Category)
+            {
+                case ItemCategory.Consumable:
+                    UseConsumable(id.Value, index);
+                    break;
+
+                case ItemCategory.Weapon:
+                    // 装備処理を後で追加できる
+                    break;
+
+                case ItemCategory.Material:
+                case ItemCategory.KeyItem:
+                    // 使用不可
+                    break;
+            }
+        }
+
+        private void UseConsumable(ItemID id, int index)
+        {
+            switch (id)
+            {
+                case ItemID.Potion:
+                    _adventurer.Hp = Math.Min(_adventurer.MaxHp, _adventurer.Hp + 20);
+
+                    // ★ スタックを減らす
+                    var slot = _adventurer.Inventory[index];
+                    if (slot.count > 1)
+                        _adventurer.Inventory[index] = (id, slot.count - 1);
+                    else
+                        _adventurer.Inventory[index] = (null, 0);
+
+                    // ★ エフェクトやポップアップも出せる
+                    _popups.Add(new DamagePopup(_adventurer.Position, +20, Color.Green));
+                    break;
+            }
+        }
+
+
 
         private void UpdateFog()
         {
@@ -324,6 +786,25 @@ namespace GameEngine.Dungeon
                     new Rectangle(offsetX + goal.X * miniTile, offsetY + goal.Y * miniTile, miniTile, miniTile),
                     Color.Yellow
                 );
+            }
+        }
+
+        private void ResolvePlayerEnemyCollisions()
+        {
+            foreach (var enemy in _enemies)
+            {
+                if (_adventurer.Bounds.Intersects(enemy.Bounds))
+                {
+                    Vector2 push = _adventurer.Position - enemy.Position;
+
+                    if (push.LengthSquared() < 0.01f)
+                        push = new Vector2(1, 0);
+
+                    push.Normalize();
+
+                    // ★ 壁に押し込まれないように弱めの押し返し
+                    _adventurer.Position += push * 0.5f;
+                }
             }
         }
     }

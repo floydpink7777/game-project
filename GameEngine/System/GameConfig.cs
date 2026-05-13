@@ -32,6 +32,28 @@ namespace GameEngine.System
             Main
         }
 
+        public enum ItemID
+        {
+            Coin,
+            Potion,
+            Key
+        }
+
+        public enum EnemyID
+        {
+            Slime,
+            Goblin
+        }
+
+        public enum ItemCategory
+        {
+            Consumable, // 消費アイテム
+            Material,   // 素材
+            Weapon,     // 武器
+            KeyItem     // 重要アイテム
+        }
+
+
         //public static class Player
         //{
         //    public const float TargetWidth = 100f;

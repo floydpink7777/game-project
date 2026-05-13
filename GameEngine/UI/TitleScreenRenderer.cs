@@ -65,7 +65,7 @@ namespace GameEngine.UI
         {
             // 背景
             _spriteBatch.Draw(
-                TextureManager.GetTexture(TextureID.WhitePixel),
+                TextureManager.Get(TextureID.WhitePixel),
                 new Rectangle(0, 0, 800, 480),
                 Color.Black
             );
@@ -86,7 +86,7 @@ namespace GameEngine.UI
         private void DrawButton(SpriteFontBase font, string text, Rectangle rect)
         {
             _spriteBatch.Draw(
-                TextureManager.GetTexture(TextureID.WhitePixel),
+                TextureManager.Get(TextureID.WhitePixel),
                 rect,
                 Color.DarkSlateGray
             );

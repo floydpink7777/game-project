@@ -1,6 +1,8 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using System;
+using System.Collections.Generic;
+using static GameEngine.System.GameConfig;
 
 namespace GameEngine.Dungeon
 {
@@ -17,7 +19,7 @@ namespace GameEngine.Dungeon
         public bool IsDashing => Keyboard.GetState().IsKeyDown(Keys.LeftShift);
 
         public Rectangle Bounds =>
-            new Rectangle((int)Position.X, (int)Position.Y, 28, 28);
+            new Rectangle((int)Position.X, (int)Position.Y, 32, 32);
 
         private int _hp;
         public int Hp
@@ -38,12 +40,13 @@ namespace GameEngine.Dungeon
         }
         public float DisplayHp;
 
-
         public int MaxHp;
         public float InvincibleTime = 0f;
 
         public int Attack;
         public int Defense;
+
+        public (ItemID? id, int count)[] Inventory = new (ItemID?, int)[20];
 
         public void SetPosition(Vector2 pos)
         {

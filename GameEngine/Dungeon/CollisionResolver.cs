@@ -1,4 +1,5 @@
 ﻿using GameEngine.GameData.Player;
+using GameEngine.System.Core;
 using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
@@ -59,7 +60,44 @@ namespace GameEngine.Dungeon
             adventurer.Position = pos;
         }
 
-        private static bool IsColliding(Rectangle bounds, TileMap map, out int tileX, out int tileY)
+        public static void Resolve(ICollidable obj, TileMap map)
+        {
+            Vector2 pos = obj.Position;
+
+            // X方向
+            pos.X += obj.Velocity.X;
+            Rectangle boundsX = new Rectangle(
+                (int)pos.X, (int)obj.Position.Y,
+                obj.Bounds.Width, obj.Bounds.Height
+            );
+
+            if (IsColliding(boundsX, map, out int tileX, out int tileY))
+            {
+                if (obj.Velocity.X > 0)
+                    pos.X = tileX * map.TileSize - obj.Bounds.Width;
+                else if (obj.Velocity.X < 0)
+                    pos.X = (tileX + 1) * map.TileSize;
+            }
+
+            // Y方向
+            pos.Y += obj.Velocity.Y;
+            Rectangle boundsY = new Rectangle(
+                (int)pos.X, (int)pos.Y,
+                obj.Bounds.Width, obj.Bounds.Height
+            );
+
+            if (IsColliding(boundsY, map, out tileX, out tileY))
+            {
+                if (obj.Velocity.Y > 0)
+                    pos.Y = tileY * map.TileSize - obj.Bounds.Height;
+                else if (obj.Velocity.Y < 0)
+                    pos.Y = (tileY + 1) * map.TileSize;
+            }
+
+            obj.Position = pos;
+        }
+
+        public static bool IsColliding(Rectangle bounds, TileMap map, out int tileX, out int tileY)
         {
             int scale = 1; // TileMap.Draw の拡大率
 

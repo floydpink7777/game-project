@@ -28,13 +28,13 @@ namespace GameEngine.UI
             if (isNarration)
             {
                 NameArea = Rectangle.Empty;
-                _windowTexture = TextureManager.GetTexture(TextureID.MessageFrameNoName);
+                _windowTexture = TextureManager.Get(TextureID.MessageFrameNoName);
             }
             else
             {
                 // セリフ用レイアウト
                 NameArea = new Rectangle(40, 730, 300, 40);
-                _windowTexture = TextureManager.GetTexture(TextureID.MessageFrame);
+                _windowTexture = TextureManager.Get(TextureID.MessageFrame);
             }
 
             CalculateLayout();

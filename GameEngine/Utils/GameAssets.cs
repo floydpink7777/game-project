@@ -11,52 +11,39 @@ namespace GameEngine.Utils
 {
     public static class GameAssets
     {
-        public static Texture2D WhiteTex;
-
-        public static void Init(GraphicsDevice gd)
-        {
-            WhiteTex = new Texture2D(gd, 1, 1);
-            WhiteTex.SetData(new[] { Microsoft.Xna.Framework.Color.White });
-        }
-
         public static readonly Dictionary<TextureID, string> TexturePaths = new()
         {
             { TextureID.MessageFrame, "images/message_frame" },
             { TextureID.MessageFrameNoName, "images/message_frame_no_name" },
             { TextureID.ChoiceWindow, "images/choice_frame" },
-            //{ TextureID.GarenR, "images/Garen_R" },
-            //{ TextureID.Slash, "Effects/Slash" }
         };
 
-        public static readonly Dictionary<SoundID, string> SoundPaths = new()
+        public static readonly Dictionary<ItemID, string> ItemTexturePaths = new()
         {
-            //{ SoundID.Hit, "Sounds/SE/maou_se_battle14" },
-            //{ SoundID.Ult, "Sounds/SE/urt" },
-            //{ SoundID.E, "Sounds/SE/e" },
-            //{ SoundID.Voice1, "Sounds/SE/Voice1" },
-            //{ SoundID.Voice2, "Sounds/SE/Voice2" },
+            { ItemID.Coin, "images/cupmen_ramen_shoyu_01_open" },
+            { ItemID.Potion, "images/icecream_cone_triple_vanilla_strawberry_chocomint" },
         };
 
+        public static readonly Dictionary<SoundID, string> SoundPaths = new();
         public static readonly Dictionary<FontID, string> FontPaths = new()
         {
-              { FontID.Main, "Content/Fonts/NotoSansJP-Regular.ttf" }
+            { FontID.Main, "Content/Fonts/NotoSansJP-Regular.ttf" }
         };
 
-        public static string GetTexturePath(TextureID id)
-        {
-            return TexturePaths[id];
-        }
+        public record ItemInfo(
+            string Name,
+            string Description,
+            ItemCategory Category
+        );
 
-        public static string GetSoundPath(SoundID id)
+        public static class ItemDB
         {
-            return SoundPaths[id];
-        }
-
-        public static void Load(ContentManager content, GraphicsDevice graphicsDevice)
-        {
-            TextureManager.Load(content, graphicsDevice);
-            //SoundManager.Load(content);
-            FontManager.Load(content, graphicsDevice);
+            public static readonly Dictionary<ItemID, ItemInfo> Items = new()
+            {
+                { ItemID.Coin,   new("コイン", "誰が何と言おうと聖剣エクスカリバーです", ItemCategory.Weapon) },
+                { ItemID.Potion, new("回復薬", "HPを20回復するポーション", ItemCategory.Consumable) },
+                { ItemID.Key,    new("鍵", "どこかの扉を開ける鍵", ItemCategory.KeyItem) },
+            };
         }
     }
 }
