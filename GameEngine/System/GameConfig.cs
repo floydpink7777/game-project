@@ -53,63 +53,46 @@ namespace GameEngine.System
             KeyItem     // 重要アイテム
         }
 
-
-        //public static class Player
-        //{
-        //    public const float TargetWidth = 100f;
-        //    public const float RotationSpeed = 10f;
-        //    public const float HitRadius = 400f;
-
-        //    public const float WiperSpeed = 2f;
-        //    public const float WiperAngle = 0.5f;
-
-        //    public const float SpinDuration = 3.0f;
-        //    public const float SpinRotationSpeed = 20f;
-        //    public const float SpinRadiusMultiplier = 2.0f;
-        //}
-
-        public static class Enemy
+        // アイテムの使い方を定義
+        public enum UseBehavior
         {
-            public const float TargetWidth = 75f;
-            public const float RespawnTime = 1f;
-            public const float SpawnOffset = 50f;
-            public const int MinSpeed = 50;
-            public const int MaxSpeed = 100;
-            public const int MoneyPerKill = 5;
-            public const int MaxEnemyCount = 150;
+            Drink,
+            Eat,
+            Read,
+            Throw,
+            Equip
         }
 
-        public static class System
+        // アイテムの見た目や形状を定義
+        public enum ItemForm
         {
-            public const double MoneyInterval = 5.0;
-            public const int MoneyPerTick = 2;
+            Potion,
+            Scroll,
+            Sword,
+            Shield,
+            Armor,
+            Herb,
+            Ore,
+            Ring,
+            Staff
         }
 
-        public static class UI
+        // アイテムのカテゴリ
+        public enum ItemType
         {
-            // 画面下からの基準高さ
-            public const float BottomMargin = 80f;
-
-            // 左右の余白
-            public const float SideMargin = 20f;
-
-            // スキルアイコン
-            public const float SkillIconSize = 32f;
-            public const float SkillIconSpacing = 60f;
-
-            // スキルバーの横幅（アイコン数に応じて中央揃えに使う）
-            public const float SkillBarWidth = 200f;
-
-            // 色設定
-            public static readonly Color MoneyTextColor = Color.White;
-            public static readonly Color CooldownMaskColor = new Color(0, 0, 0, 180);
+            Consumable, 
+            Equipment
         }
 
-        public static class Debug
+        // 素材
+        public enum MaterialType
         {
-            public const int CircleSegments = 256;
-            public const float CircleRadius = 10f;
-            public const float CircleLineThickness = 2f;
+
+        }
+        // 品質
+        public enum ItemQuality
+        {
+
         }
     }
 }

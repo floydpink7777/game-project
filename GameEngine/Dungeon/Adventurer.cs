@@ -46,7 +46,7 @@ namespace GameEngine.Dungeon
         public int Attack;
         public int Defense;
 
-        public (ItemID? id, int count)[] Inventory = new (ItemID?, int)[20];
+        public (ItemInstance item, int count)?[] Inventory = new (ItemInstance, int)?[20];
 
         public void SetPosition(Vector2 pos)
         {

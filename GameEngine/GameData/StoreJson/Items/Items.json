@@ -1,0 +1,24 @@
+{
+  "Potion_Healing": {
+    "BaseName": "回復薬",
+    "BaseDescription": "HPを20回復する薬。",
+    "IconPath": "images/cupmen_ramen_shoyu_01_open",
+    "Form": "Potion",
+    "BaseWeight": 1,
+    "BaseValue": 50,
+    "DefaultUses": [ "Drink" ],
+    "BaseEnchants": null,
+    "BaseTags": null
+  },
+  "Test_Sword": {
+    "BaseName": "テストソード",
+    "BaseDescription": "攻撃力+5のテスト用の剣。",
+    "IconPath": "images/icecream_cone_triple_vanilla_strawberry_chocomint",
+    "Form": "Sword",
+    "BaseWeight": 2,
+    "BaseValue": 100,
+    "DefaultUses": [],
+    "BaseEnchants": null,
+    "BaseTags": null
+  }
+}

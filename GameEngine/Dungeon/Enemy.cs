@@ -43,7 +43,7 @@ namespace GameEngine.Dungeon
 
         public EnemyID Type { get; set; }
 
-        public (ItemID id, double weight)[] DropTable { get; set; }
+        public (string itemTemplateID, double weight)[] DropTable { get; set; }
 
         public Enemy(Point tilePos, Texture2D tex)
         {

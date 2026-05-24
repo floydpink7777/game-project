@@ -118,7 +118,13 @@ namespace GameEngine
         {
             _spriteBatch = new Microsoft.Xna.Framework.Graphics.SpriteBatch(GraphicsDevice);
 
+            ItemDB.LoadFromJson("GameData/StoreJson/Items/Items.json");
+
             TextureManager.Load(Content, GraphicsDevice);
+
+            foreach (var tpl in ItemDB.Templates.Values)
+                TextureManager.GetByPath(tpl.IconPath);
+
             FontManager.Load(Content, GraphicsDevice);
 
             _ui = new UIManager(_spriteBatch);

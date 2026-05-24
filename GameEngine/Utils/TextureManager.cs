@@ -52,7 +52,15 @@ namespace GameEngine.Utils
         {
             return (Texture2D)_cache[id];
         }
+
+        public static Texture2D GetByPath(string path)
+        {
+            if (!_cache.TryGetValue(path, out var tex))
+            {
+                tex = _content.Load<Texture2D>(path);
+                _cache[path] = tex;
+            }
+            return tex;
+        }
     }
-
-
 }

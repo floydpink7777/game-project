@@ -44,12 +44,11 @@ namespace GameEngine.Dungeon
 
         private bool _prevTab = false;
 
-        private ItemID? _hoverItem = null;
+        private ItemInstance? _hoverItem = null;
         private Rectangle? _hoverSlotRect = null;
 
-        private ItemID? _dragItem = null;
+        private ItemInstance? _dragItem = null;
         private int _dragCount = 0;
-        private Rectangle? _dragOriginSlot = null;
         private MouseState prevMs;
 
         private int? _hoverSlotIndex = null;
@@ -79,8 +78,8 @@ namespace GameEngine.Dungeon
                 {
                     e.DropTable = new[]
                     {
-                        (ItemID.Coin,   0.7),
-                        (ItemID.Potion,   0.3),
+                        ("Test_Sword", 0.7),
+                        ("Potion_Healing", 0.3),
                     };
                 }
 
@@ -91,7 +90,7 @@ namespace GameEngine.Dungeon
             _debugPixel.SetData(new[] { Color.White });
         }
 
-        private ItemID GetRandomDrop((ItemID id, double weight)[] table)
+        private string GetRandomDrop((string templateID, double weight)[] table)
         {
             double r = Random.Shared.NextDouble();
             double sum = 0;
@@ -103,9 +102,8 @@ namespace GameEngine.Dungeon
                     return id;
             }
 
-            return table[^1].id; // 念のため
+            return table[^1].templateID;
         }
-
 
         private void DrawCircle(SpriteBatch sb, Vector2 center, float radius, Color color, int segments = 32)
         {
@@ -258,10 +256,12 @@ namespace GameEngine.Dungeon
                         // ★ アイテムドロップ（例：50%でコイン）
                         if (Random.Shared.NextDouble() < 0.5)
                         {
-                            ItemID drop = GetRandomDrop(enemy.DropTable);
-                            _items.Add(new Item(enemy.Position, drop));
-                        }
+                            string dropTpl = GetRandomDrop(enemy.DropTable);
+                            var template = ItemDB.Templates[dropTpl];
+                            var instance = ItemDB.CreateInstance(template);
 
+                            _items.Add(new Item(enemy.Position, instance));
+                        }
                     }
                 }
 
@@ -303,26 +303,32 @@ namespace GameEngine.Dungeon
 
         private void OnItemPickup(Item item)
         {
-            // 既にあるスロットに追加
+            // ① ItemInstance を生成
+            ItemInstance instance = ItemDB.CreateInstance(item.Instance.Template);
+
+            // ② 既にあるスロットに追加
             for (int i = 0; i < _adventurer.Inventory.Length; i++)
             {
-                if (_adventurer.Inventory[i].id == item.Type)
+                var slot = _adventurer.Inventory[i];
+
+                if (slot != null && slot.Value.item.IsStackableWith(instance))
                 {
-                    _adventurer.Inventory[i].count++;
+                    _adventurer.Inventory[i] = (slot.Value.item, slot.Value.count + 1);
                     return;
                 }
             }
 
-            // 空スロットに入れる
+            // ③ 空スロットに入れる
             for (int i = 0; i < _adventurer.Inventory.Length; i++)
             {
-                if (_adventurer.Inventory[i].id == null)
+                if (_adventurer.Inventory[i] == null)
                 {
-                    _adventurer.Inventory[i] = (item.Type, 1);
+                    _adventurer.Inventory[i] = (instance, 1);
                     return;
                 }
             }
         }
+
 
         private void OnPlayerDead()
         {
@@ -394,7 +400,7 @@ namespace GameEngine.Dungeon
 
             foreach (var item in _items)
             {
-                Texture2D tex = TextureManager.Get(item.Type);
+                Texture2D tex = TextureManager.GetByPath(item.Instance.Template.IconPath);
 
                 sb.Draw(tex, new Rectangle((int)item.Position.X, (int)item.Position.Y, 16, 16), Color.White);
             }
@@ -458,39 +464,44 @@ namespace GameEngine.Dungeon
                     _hoverSlotRect = slotRect;
                     _hoverSlotIndex = index;
 
-                    if (slots[index].id != null)
-                        _hoverItem = slots[index].id;
+                    if (slots[index] != null)
+                        _hoverItem = slots[index]!.Value.item;
                 }
 
                 // 掴む
                 if (ms.LeftButton == ButtonState.Pressed && prevMs.LeftButton == ButtonState.Released)
                 {
-                    if (slotRect.Contains(mousePos) && slots[index].id != null)
+                    if (slotRect.Contains(mousePos) && slots[index] != null)
                     {
                         bool split = Keyboard.GetState().IsKeyDown(Keys.LeftShift) ||
                                      Keyboard.GetState().IsKeyDown(Keys.RightShift);
 
-                        var (itemID, count) = slots[index];
+                        var slot = slots[index];
+                        if (slot == null)
+                            continue;
+
+                        var item = slot.Value.item;
+                        var count = slot.Value.count;
 
                         if (split && count > 1)
                         {
                             // ★ 半分だけ掴む
                             int half = count / 2;
-                            _dragItem = itemID;
+                            _dragItem = item;
                             _dragCount = half;
                             _dragOriginIndex = index;
 
                             // 元スロットには残りを残す
-                            slots[index] = (itemID, count - half);
+                            slots[index] = (item, count - half);
                         }
                         else
                         {
                             // ★ 通常の掴む
-                            _dragItem = itemID;
+                            _dragItem = item;
                             _dragCount = count;
                             _dragOriginIndex = index;
 
-                            slots[index] = (null, 0);
+                            slots[index] = null;
                         }
                     }
 
@@ -500,11 +511,13 @@ namespace GameEngine.Dungeon
                 sb.Draw(_debugPixel, new Rectangle(x, y, slotSize, slotSize), Color.White * 0.2f);
 
                 // アイテム描画
-                if (slots[index].id != null)
+                if (slots[index] != null)
                 {
-                    var (itemID, count) = slots[index];
+                    var slot = slots[index];
+                    var item = slot.Value.item;
+                    var count = slot.Value.count;
 
-                    Texture2D tex = TextureManager.Get(itemID.Value);
+                    Texture2D tex = TextureManager.GetByPath(item.Template.IconPath);
                     sb.Draw(tex, new Rectangle(x + 8, y + 8, 32, 32), Color.White);
 
                     // ★ 個数表示（右下）
@@ -526,54 +539,48 @@ namespace GameEngine.Dungeon
                 if (ms.RightButton == ButtonState.Pressed &&
                     prevMs.RightButton == ButtonState.Released &&
                     slotRect.Contains(mousePos) &&
-                    slots[index].id != null)
+                    slots[index] != null)
                 {
                     UseItem(index);
                 }
-
-
             }
 
             // ============================
             // ② ドロップ処理（固定スロット方式 + swap対応）
             // ============================
-            if (_dragItem.HasValue &&
+            if (_dragItem != null &&
                 ms.LeftButton == ButtonState.Released &&
                 prevMs.LeftButton == ButtonState.Pressed)
             {
                 int dropIndex = _hoverSlotIndex ?? _dragOriginIndex.Value;
 
-                var target = slots[dropIndex];
+                var target = slots[dropIndex]; // (ItemInstance item, int count)? or null
 
-                // ★ ① 同じアイテムなら結合
-                if (target.id == _dragItem)
+                // ★ ① 同じ TemplateID なら結合
+                if (target != null &&
+                    target.Value.item.IsStackableWith(_dragItem))
                 {
-                    slots[dropIndex] = (_dragItem.Value, target.count + _dragCount);
+                    slots[dropIndex] = (target.Value.item, target.Value.count + _dragCount);
                 }
                 else
                 {
                     // ★ ② 別アイテムなら swap
-                    if (target.id != null)
+                    if (target != null)
                     {
-                        var temp = target;
-                        slots[dropIndex] = (_dragItem.Value, _dragCount);
+                        var temp = target.Value; // (ItemInstance item, int count)
+                        slots[dropIndex] = (_dragItem, _dragCount);
                         slots[_dragOriginIndex.Value] = temp;
                     }
                     else
                     {
                         // ★ ③ 空スロットなら普通に置く
-                        slots[dropIndex] = (_dragItem.Value, _dragCount);
+                        slots[dropIndex] = (_dragItem, _dragCount);
                     }
                 }
 
                 _dragItem = null;
                 _dragOriginIndex = null;
-
-
-                _dragItem = null;
-                _dragOriginIndex = null;
             }
-
 
             // ============================
             // ③ ホバー枠
@@ -590,29 +597,30 @@ namespace GameEngine.Dungeon
             // ============================
             // ④ ドラッグ中アイコン
             // ============================
-            if (_dragItem.HasValue)
+            if (_dragItem != null)
             {
-                Texture2D tex = TextureManager.Get(_dragItem.Value);
+                Texture2D tex = TextureManager.GetByPath(_dragItem.Template.IconPath);
                 sb.Draw(tex, new Rectangle(mousePos.X - 16, mousePos.Y - 16, 32, 32), Color.White);
+
                 sb.DrawString(font, $"x{_dragCount}", new Vector2(mousePos.X, mousePos.Y), Color.White);
             }
+
 
             // ============================
             // ⑤ Tooltip
             // ============================
-            if (_hoverItem.HasValue)
-                DrawItemTooltip(sb, _hoverItem.Value);
+            if (_hoverItem != null)
+                DrawItemTooltip(sb, _hoverItem);
 
             prevMs = ms;
         }
 
-
-        private void DrawItemTooltip(SpriteBatch sb, ItemID id)
+        private void DrawItemTooltip(SpriteBatch sb, ItemInstance instance)
         {
             var font = FontManager.GetFont(FontID.Main, 18);
 
-            string name = ItemDB.Items[id].Name;
-            string desc = ItemDB.Items[id].Description;
+            string name = instance.DisplayName;
+            string desc = instance.DisplayDescription;
 
             MouseState ms = Mouse.GetState();
             int x = ms.X + 20;
@@ -651,47 +659,48 @@ namespace GameEngine.Dungeon
 
         private void UseItem(int index)
         {
-            var (id, count) = _adventurer.Inventory[index];
-            var info = ItemDB.Items[id.Value];
+            var slot = _adventurer.Inventory[index];
+            if (slot == null)
+                return;
 
-            switch (info.Category)
+            var instance = slot.Value.item;      // ItemInstance
+            var template = instance.Template;    // ItemTemplate
+
+            switch (template.Form)               // ← Form or Category で判定
             {
-                case ItemCategory.Consumable:
-                    UseConsumable(id.Value, index);
+                case ItemForm.Potion:
+                    UseConsumable(instance, index);
                     break;
 
-                case ItemCategory.Weapon:
-                    // 装備処理を後で追加できる
+                case ItemForm.Scroll:
+                case ItemForm.Sword:
+                    // 装備や魔法など後で追加
                     break;
 
-                case ItemCategory.Material:
-                case ItemCategory.KeyItem:
+                default:
                     // 使用不可
                     break;
             }
         }
 
-        private void UseConsumable(ItemID id, int index)
+        private void UseConsumable(ItemInstance instance, int index)
         {
-            switch (id)
-            {
-                case ItemID.Potion:
-                    _adventurer.Hp = Math.Min(_adventurer.MaxHp, _adventurer.Hp + 20);
+            var template = instance.Template;
 
-                    // ★ スタックを減らす
-                    var slot = _adventurer.Inventory[index];
-                    if (slot.count > 1)
-                        _adventurer.Inventory[index] = (id, slot.count - 1);
-                    else
-                        _adventurer.Inventory[index] = (null, 0);
+            // ★ 今は固定値 20 回復（後で Enchant に移せる）
+            _adventurer.Hp = Math.Min(_adventurer.MaxHp, _adventurer.Hp + 20);
 
-                    // ★ エフェクトやポップアップも出せる
-                    _popups.Add(new DamagePopup(_adventurer.Position, +20, Color.Green));
-                    break;
-            }
+            // ★ スタックを減らす
+            var slot = _adventurer.Inventory[index]!.Value;
+
+            if (slot.count > 1)
+                _adventurer.Inventory[index] = (instance, slot.count - 1);
+            else
+                _adventurer.Inventory[index] = null;
+
+            // ★ ポップアップ
+            _popups.Add(new DamagePopup(_adventurer.Position, +20, Color.Green));
         }
-
-
 
         private void UpdateFog()
         {
