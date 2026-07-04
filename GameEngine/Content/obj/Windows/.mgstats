@@ -4,6 +4,10 @@ Source File,Dest File,Processor Type,Content Type,Source File Size,Dest File Siz
 "E:/NovelEngine/GameEngine/Content/images/cupmen_ramen_shoyu_01_open.png","E:/NovelEngine/GameEngine/Content/bin/Windows/images/cupmen_ramen_shoyu_01_open.xnb","TextureProcessor","Texture2DContent",4065,1636085,0.422047
 "E:/NovelEngine/GameEngine/Content/images/enemy.png","E:/NovelEngine/GameEngine/Content/bin/Windows/images/enemy.xnb","TextureProcessor","Texture2DContent",1758,49237,0.3992003
 "E:/NovelEngine/GameEngine/Content/images/icecream_cone_triple_vanilla_strawberry_chocomint.png","E:/NovelEngine/GameEngine/Content/bin/Windows/images/icecream_cone_triple_vanilla_strawberry_chocomint.xnb","TextureProcessor","Texture2DContent",5778,2400085,0.4584401
+"E:/NovelEngine/GameEngine/Content/images/kandenchi_01_blue.png","E:/NovelEngine/GameEngine/Content/bin/Windows/images/kandenchi_01_blue.xnb","TextureProcessor","Texture2DContent",4070,1874085,0.5048806
+"E:/NovelEngine/GameEngine/Content/images/kandenchi_01_green.png","E:/NovelEngine/GameEngine/Content/bin/Windows/images/kandenchi_01_green.xnb","TextureProcessor","Texture2DContent",4067,1874085,0.0672583
+"E:/NovelEngine/GameEngine/Content/images/kandenchi_01_red.png","E:/NovelEngine/GameEngine/Content/bin/Windows/images/kandenchi_01_red.xnb","TextureProcessor","Texture2DContent",4074,1874085,0.0631725
+"E:/NovelEngine/GameEngine/Content/images/kandenchi_01_yellow.png","E:/NovelEngine/GameEngine/Content/bin/Windows/images/kandenchi_01_yellow.xnb","TextureProcessor","Texture2DContent",4061,1874085,0.0578596
 "E:/NovelEngine/GameEngine/Content/images/message_frame_no_name.png","E:/NovelEngine/GameEngine/Content/bin/Windows/images/message_frame_no_name.xnb","TextureProcessor","Texture2DContent",54829,747877,0.0347495
 "E:/NovelEngine/GameEngine/Content/images/message_frame.png","E:/NovelEngine/GameEngine/Content/bin/Windows/images/message_frame.xnb","TextureProcessor","Texture2DContent",70178,877125,0.0343945
 "E:/NovelEngine/GameEngine/Content/images/tileset.png","E:/NovelEngine/GameEngine/Content/bin/Windows/images/tileset.xnb","TextureProcessor","Texture2DContent",280592,786517,0.0398584

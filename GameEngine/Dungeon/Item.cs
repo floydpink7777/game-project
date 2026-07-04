@@ -109,14 +109,29 @@ namespace GameEngine.Dungeon
 
     public static class ItemDB
     {
-        public static Dictionary<string, ItemTemplate> Templates { get; private set; }
+        public static Dictionary<string, ItemTemplate> Templates { get; private set; } = new();
+        public static Dictionary<string, Dictionary<string, double>> RarityTable { get; private set; } = new();
+        public static Dictionary<string, Dictionary<string, Dictionary<string, double>>> DropTable { get; private set; } = new();
 
-        public static void LoadFromJson(string path)
+        public static void LoadTemplatesFromJson(string path)
         {
             string json = File.ReadAllText(path);
-
             Templates = JsonConvert.DeserializeObject<Dictionary<string, ItemTemplate>>(json)
                 ?? new Dictionary<string, ItemTemplate>();
+        }
+
+        public static void LoadRarityFromJson(string path)
+        {
+            string json = File.ReadAllText(path);
+            RarityTable = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, double>>>(json)
+                ?? new Dictionary<string, Dictionary<string, double>>();
+        }
+
+        public static void LoadDropTablesFromJson(string path)
+        {
+            string json = File.ReadAllText(path);
+            DropTable = JsonConvert.DeserializeObject<Dictionary<string, Dictionary<string, Dictionary<string, double>>>>(json)
+                ?? new Dictionary<string, Dictionary<string, Dictionary<string, double>>>();
         }
 
         public static ItemInstance CreateInstance(ItemTemplate template)

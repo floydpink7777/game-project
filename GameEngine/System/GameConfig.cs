@@ -94,5 +94,14 @@ namespace GameEngine.System
         {
 
         }
+
+        public enum EnemyCategory
+        {
+            Slime,
+            Goblin,
+            Undead,
+            Dragon,
+            Beast
+        }
     }
 }

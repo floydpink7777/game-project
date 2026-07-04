@@ -7,6 +7,7 @@ using Microsoft.Xna.Framework.Input;
 using MonoGame.Extended.Tiled;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using static GameEngine.System.GameConfig;
 using static GameEngine.Utils.GameAssets;
 
@@ -67,42 +68,46 @@ namespace GameEngine.Dungeon
             _enemies = new List<Enemy>();
             foreach (var pos in map.TileMapData.Enemies)
             {
+                // ★ 本来はマップデータから EnemyID を読むべき
+                string id = "slime";
 
                 var e = new Enemy(pos, enemyTex);
+                e.EnemyID = id;
+
+                // ★ EnemyID → Category のマッピング（暫定）
+                //   後で JSON 化しても良い
+                e.Category = EnemyCategory.Slime;
+
+                // ★ ステータスも後で JSON 化できる
                 e.Attack = 105;
                 e.Defense = 90;
-                e.Type = EnemyID.Slime;
 
-                // ★ 敵の種類に応じてドロップテーブルを設定
-                if (e.Type == EnemyID.Slime)
+                // ================================
+                // ★ ① レア枠（カテゴリーごと）
+                // ================================
+                var rarity = ItemDB.RarityTable[e.Category.ToString()];
+                e.RarityTable = new DropTable(
+                    rarity.Select(kv => (kv.Key, kv.Value)).ToArray()
+                );
+
+                // ================================
+                // ★ ② アイテムテーブル（EnemyID ごと）
+                // ================================
+                var drop = ItemDB.DropTable[e.EnemyID];
+                e.ItemDropTable = new Dictionary<string, DropTable>();
+
+                foreach (var rarityEntry in drop)
                 {
-                    e.DropTable = new[]
-                    {
-                        ("Test_Sword", 0.7),
-                        ("Potion_Healing", 0.3),
-                    };
+                    e.ItemDropTable[rarityEntry.Key] =
+                        new DropTable(rarityEntry.Value.Select(kv => (kv.Key, kv.Value)).ToArray());
                 }
 
                 _enemies.Add(e);
             }
 
+
             _debugPixel = new Texture2D(advTex.GraphicsDevice, 1, 1);
             _debugPixel.SetData(new[] { Color.White });
-        }
-
-        private string GetRandomDrop((string templateID, double weight)[] table)
-        {
-            double r = Random.Shared.NextDouble();
-            double sum = 0;
-
-            foreach (var (id, weight) in table)
-            {
-                sum += weight;
-                if (r < sum)
-                    return id;
-            }
-
-            return table[^1].templateID;
         }
 
         private void DrawCircle(SpriteBatch sb, Vector2 center, float radius, Color color, int segments = 32)
@@ -253,13 +258,15 @@ namespace GameEngine.Dungeon
 
                         _enemies.RemoveAt(i);   // ★ 敵を消す
 
-                        // ★ アイテムドロップ（例：50%でコイン）
-                        if (Random.Shared.NextDouble() < 0.5)
-                        {
-                            string dropTpl = GetRandomDrop(enemy.DropTable);
-                            var template = ItemDB.Templates[dropTpl];
-                            var instance = ItemDB.CreateInstance(template);
+                        // ★ アイテムドロップ判定
+                        string rarity = enemy.RarityTable.Roll();
 
+                        if (rarity != "None")
+                        {
+                            string itemId = enemy.ItemDropTable[rarity].Roll();
+
+                            var template = ItemDB.Templates[itemId];
+                            var instance = ItemDB.CreateInstance(template);
                             _items.Add(new Item(enemy.Position, instance));
                         }
                     }

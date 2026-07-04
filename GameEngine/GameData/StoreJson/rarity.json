@@ -1,0 +1,14 @@
+{
+  "Slime": {
+    "None": 0.8,
+    "Bronze": 0.1,
+    "Silver": 0.05,
+    "Gold": 0.05
+  },
+  "Goblin": {
+    "None": 0.5,
+    "Bronze": 0.35,
+    "Silver": 0.12,
+    "Gold": 0.03
+  }
+}

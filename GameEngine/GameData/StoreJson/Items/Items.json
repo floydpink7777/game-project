@@ -20,5 +20,49 @@
     "DefaultUses": [],
     "BaseEnchants": null,
     "BaseTags": null
+  },
+  "Test1": {
+    "BaseName": "テスト1",
+    "BaseDescription": "攻撃力+5のテスト用の剣。",
+    "IconPath": "images/kandenchi_01_green",
+    "Form": "Sword",
+    "BaseWeight": 2,
+    "BaseValue": 100,
+    "DefaultUses": [],
+    "BaseEnchants": null,
+    "BaseTags": null
+  },
+  "Test2": {
+    "BaseName": "テスト2",
+    "BaseDescription": "攻撃力+5のテスト用の剣。",
+    "IconPath": "images/kandenchi_01_blue",
+    "Form": "Sword",
+    "BaseWeight": 2,
+    "BaseValue": 100,
+    "DefaultUses": [],
+    "BaseEnchants": null,
+    "BaseTags": null
+  },
+  "Test3": {
+    "BaseName": "テスト3",
+    "BaseDescription": "攻撃力+5のテスト用の剣。",
+    "IconPath": "images/kandenchi_01_yellow",
+    "Form": "Sword",
+    "BaseWeight": 2,
+    "BaseValue": 100,
+    "DefaultUses": [],
+    "BaseEnchants": null,
+    "BaseTags": null
+  },
+  "Test4": {
+    "BaseName": "テスト4",
+    "BaseDescription": "攻撃力+5のテスト用の剣。",
+    "IconPath": "images/kandenchi_01_red",
+    "Form": "Sword",
+    "BaseWeight": 2,
+    "BaseValue": 100,
+    "DefaultUses": [],
+    "BaseEnchants": null,
+    "BaseTags": null
   }
 }

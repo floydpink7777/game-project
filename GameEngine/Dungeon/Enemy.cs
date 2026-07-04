@@ -15,6 +15,9 @@ namespace GameEngine.Dungeon
         public float Speed = 40f;
         public float ChaseSpeed = 100f;
 
+
+        public string EnemyID;
+        public EnemyCategory Category;
         public int Attack;
         public int Defense;
 
@@ -41,9 +44,9 @@ namespace GameEngine.Dungeon
             32, 32
         );
 
-        public EnemyID Type { get; set; }
+        public Dictionary<string, DropTable> ItemDropTable { get; set; }
 
-        public (string itemTemplateID, double weight)[] DropTable { get; set; }
+        public DropTable RarityTable { get; set; }
 
         public Enemy(Point tilePos, Texture2D tex)
         {

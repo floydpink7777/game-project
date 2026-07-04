@@ -1,0 +1,30 @@
+{
+  "slime": {
+    "Bronze": {
+      "Potion_Healing": 0.05,
+      "Test1": 0.95
+    },
+    "Silver": {
+      "Potion_Healing": 0.05,
+      "Test2": 0.95
+    },
+    "Gold": {
+      "Potion_Healing": 0.05,
+      "Test3": 0.95
+    }
+  },
+  "slime_big": {
+    "Bronze": {
+      "Potion_Healing": 0.7,
+      "Test_Sword": 0.3
+    },
+    "Silver": {
+      "Potion_Healing": 0.6,
+      "Test_Sword": 0.4
+    },
+    "Gold": {
+      "Potion_Healing": 0.5,
+      "Test_Sword": 0.5
+    }
+  }
+}

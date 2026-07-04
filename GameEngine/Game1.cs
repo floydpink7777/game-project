@@ -67,6 +67,10 @@ namespace GameEngine
 
         protected override void Initialize()
         {
+            _graphics.PreferredBackBufferWidth = 1280;
+            _graphics.PreferredBackBufferHeight = 720;
+            _graphics.ApplyChanges();
+
             _gameSession = new GameSession();
 
             vars = new VariableStore();
@@ -118,7 +122,11 @@ namespace GameEngine
         {
             _spriteBatch = new Microsoft.Xna.Framework.Graphics.SpriteBatch(GraphicsDevice);
 
-            ItemDB.LoadFromJson("GameData/StoreJson/Items/Items.json");
+            ItemDB.LoadTemplatesFromJson("GameData/StoreJson/Items/Items.json");
+
+            ItemDB.LoadRarityFromJson("GameData/StoreJson/rarity.json");
+
+            ItemDB.LoadDropTablesFromJson("GameData/StoreJson/ItemTableByEnemy/drop_table.json");
 
             TextureManager.Load(Content, GraphicsDevice);
 
