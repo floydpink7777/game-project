@@ -121,27 +121,34 @@ namespace GameEngine.Dungeon
 
         public static void ClampToMap(Adventurer adventurer, TileMap map)
         {
-            int scale = 1; // Draw と Collision に合わせる
-
-            int mapWidthPx = map.TileMapData.Width * map.TileSize * scale;
-            int mapHeightPx = map.TileMapData.Height * map.TileSize * scale;
-
-            // 左端
-            if (adventurer.Bounds.Left < 0)
-                adventurer.Position.X = 0;
-
-            // 上端
-            if (adventurer.Bounds.Top < 0)
-                adventurer.Position.Y = 0;
-
-            // 右端
-            if (adventurer.Bounds.Right > mapWidthPx)
-                adventurer.Position.X = mapWidthPx - adventurer.Bounds.Width;
-
-            // 下端
-            if (adventurer.Bounds.Bottom > mapHeightPx)
-                adventurer.Position.Y = mapHeightPx - adventurer.Bounds.Height;
+            var pos = adventurer.Position;
+            Clamp(ref pos, adventurer.Bounds, map);
+            adventurer.Position = pos;
         }
 
+        public static void ClampToMap(Enemy enemy, TileMap map)
+        {
+            var pos = enemy.Position;
+            Clamp(ref pos, enemy.Bounds, map);
+            enemy.Position = pos;
+        }
+
+        private static void Clamp(ref Vector2 position, Rectangle bounds, TileMap map)
+        {
+            int mapWidthPx = map.TileMapData.Width * map.TileSize;
+            int mapHeightPx = map.TileMapData.Height * map.TileSize;
+
+            if (bounds.Left < 0)
+                position.X = 0;
+
+            if (bounds.Top < 0)
+                position.Y = 0;
+
+            if (bounds.Right > mapWidthPx)
+                position.X = mapWidthPx - bounds.Width;
+
+            if (bounds.Bottom > mapHeightPx)
+                position.Y = mapHeightPx - bounds.Height;
+        }
     }
 }

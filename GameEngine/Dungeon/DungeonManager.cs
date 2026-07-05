@@ -159,11 +159,6 @@ namespace GameEngine.Dungeon
             }
         }
 
-        public void ResetPlayerPosition(Vector2 pos)
-        {
-            _adventurer.SetPosition(pos);
-        }
-
         public void Update(GameTime gameTime)
         {
             float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;
@@ -219,6 +214,8 @@ namespace GameEngine.Dungeon
             {
                 enemy.Update(gameTime, _adventurer.Position, _map);
                 enemy.ResolveEnemyCollision(_enemies);
+
+                CollisionResolver.ClampToMap(enemy, _map);
 
                 Rectangle enemyRect = new Rectangle(
                     (int)enemy.Position.X,
@@ -802,25 +799,6 @@ namespace GameEngine.Dungeon
                     new Rectangle(offsetX + goal.X * miniTile, offsetY + goal.Y * miniTile, miniTile, miniTile),
                     Color.Yellow
                 );
-            }
-        }
-
-        private void ResolvePlayerEnemyCollisions()
-        {
-            foreach (var enemy in _enemies)
-            {
-                if (_adventurer.Bounds.Intersects(enemy.Bounds))
-                {
-                    Vector2 push = _adventurer.Position - enemy.Position;
-
-                    if (push.LengthSquared() < 0.01f)
-                        push = new Vector2(1, 0);
-
-                    push.Normalize();
-
-                    // ★ 壁に押し込まれないように弱めの押し返し
-                    _adventurer.Position += push * 0.5f;
-                }
             }
         }
     }

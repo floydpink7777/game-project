@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Text;
 using System.Threading.Tasks;
 using static GameEngine.System.GameConfig;
@@ -156,17 +157,6 @@ namespace GameEngine.Dungeon
             _slash.Draw(sb);
             sb.End();
 
-            // ③ HP 表示
-            //sb.Begin();
-            //var adv = _manager.Adventurer;
-
-            //sb.DrawString(
-            //    FontManager.GetFont(FontID.Main, 24),
-            //    $"HP: {adv.Hp} / {adv.MaxHp}",
-            //    new Vector2(20, 20),
-            //    Microsoft.Xna.Framework.Color.White
-            //);
-            //sb.End();
             sb.Begin();
 
             var adv = _manager.Adventurer;

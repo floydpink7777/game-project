@@ -7,7 +7,7 @@ using System.Linq;
 
 public class DungeonGenerator
 {
-    public const int DefaultMapSize = 31;
+    public const int DefaultMapSize = 32;
 
     private Random rnd = new();
 
