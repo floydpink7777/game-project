@@ -69,6 +69,8 @@ namespace GameEngine
         {
             _graphics.PreferredBackBufferWidth = 1280;
             _graphics.PreferredBackBufferHeight = 720;
+            //_graphics.PreferredBackBufferWidth = 800;
+            //_graphics.PreferredBackBufferHeight = 480;
             _graphics.ApplyChanges();
 
             _gameSession = new GameSession();
@@ -157,6 +159,8 @@ namespace GameEngine
                 _graphics.PreferredBackBufferWidth,
                 _graphics.PreferredBackBufferHeight
             );
+
+            _titleScreen.Resize(_graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight);
         }
 
         protected override void Update(GameTime gameTime)
@@ -199,7 +203,6 @@ namespace GameEngine
                     }
 
                     break;
-
             }
 
             _advUI.Update(gameTime, _input);
@@ -214,11 +217,14 @@ namespace GameEngine
         {
             GraphicsDevice.Clear(Color.Black);
 
+            int screenW = _graphics.PreferredBackBufferWidth;
+            int screenH = _graphics.PreferredBackBufferHeight;
+
             switch (_logic.Mode)
             {
                 case GameMode.Title:
                     _spriteBatch.Begin();
-                    _titleScreen.Draw(FontManager.GetFont(FontID.Main, 35));
+                    _titleScreen.Draw(FontManager.GetFont(FontID.Main, 35), screenW, screenH);
                     _spriteBatch.End();
                     break;
 
@@ -227,8 +233,9 @@ namespace GameEngine
                     break;
 
                 case GameMode.MainGame:
-                    //_mainGameScreen.Draw(_fontLarge);
+                    //_newGameScreen.Draw(_fontLarge);
                     break;
+
                 case GameMode.Dungeon:
                     _dungeonScene.Draw(_spriteBatch, gameTime);
                     break;
